@@ -1,0 +1,4 @@
+# Claude SDK 依赖
+anthropic>=0.40.0
+# 支持从项目根 .env 文件读取 API Key（配合 tools/load_env.py 使用）
+python-dotenv>=1.0.0

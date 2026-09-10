@@ -1,0 +1,9 @@
+# LangChain 依赖
+# 核心 + DeepSeek（OpenAI 兼容接口）
+langchain>=1.0
+langchain-openai>=0.3
+langchain-text-splitters>=0.3
+numpy>=1.26
+# 若改用官方 Claude，则换成 langchain-anthropic
+# 支持从项目根 .env 文件读取 API Key（配合 tools/load_env.py 使用）
+python-dotenv>=1.0.0

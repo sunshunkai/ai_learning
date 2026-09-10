@@ -1,0 +1,25 @@
+# ---- 虚拟环境 ----
+venv/
+.venv/
+
+# ---- Python 缓存/构建产物 ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# ---- 密钥 / 环境变量（切勿提交真实 API Key）----
+.env
+*.env
+!*.env.example
+
+# ---- IDE / 系统 ----
+.idea/
+.vscode/
+.DS_Store
+
+# ---- 测试与临时 ----
+.pytest_cache/
+.ipynb_checkpoints/
+*.log
