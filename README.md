@@ -24,16 +24,28 @@ ai-learning/
 ├── claude-sdk/        # 【module 2】Anthropic Claude SDK
 │   ├── README.md      # 本 module 使用说明
 │   ├── __init__.py
+│   ├── common.py      # 客户端与文本解析公共工具
 │   ├── env_check.py   # 自检 API Key（先跑这个）
 │   ├── basic_chat.py  # 一问一答
 │   ├── multi_turn.py  # 多轮对话（带记忆）
 │   ├── stream_chat.py # 流式输出
 │   ├── tool_use.py    # 工具调用（function calling）
+│   ├── human_approval.py  # 人工审批后执行高风险工具
+│   ├── multi_tool_loop.py # 多工具循环和工具异常
+│   ├── structured_output.py # 强制结构化输出
+│   ├── async_chat.py    # 异步调用与异步流
+│   ├── stream_events.py # 底层流事件
+│   ├── parameter_control.py # system / stop / metadata 等参数
+│   ├── error_handling.py # 超时、重试和异常
+│   ├── thinking_chat.py # extended thinking
+│   ├── prompt_caching.py # prompt caching
+│   ├── interactive_chat.py # 交互式多轮命令行
 │   └── requirements.txt
 ├── langchain-demo/    # 【module 3】LangChain（框架层，1.x 写法）
 │   ├── README.md      # 本 module 使用说明
-│   ├── __init__.py
-│   ├── quickstart.py  # 接入聊天模型 + 流式 + 多轮
+│   ├── common.py      # DeepSeek 模型工厂
+│   ├── quickstart.py  # invoke / stream / messages
+│   ├── 01_chat_models.py ... 15_stream_events.py
 │   └── requirements.txt
 └── tools/             # 公用小工具（跨 module 共享）
     ├── __init__.py
@@ -104,6 +116,7 @@ source venv/bin/activate
 # 先学哪个 module，就装哪个的依赖
 pip install -r basics/requirements.txt
 pip install -r claude-sdk/requirements.txt
+pip install -r langchain-demo/requirements.txt
 ```
 
 ### 3. 配置 API Key（学 claude-sdk / langchain 时需要）

@@ -1,34 +1,72 @@
 # LangChain 学习模块
 
-本目录用来学习 LangChain（Python 版）—— 一个帮你编排 LLM 应用的框架。
+本目录学习 LangChain 1.x，并通过 OpenAI 兼容接口接入 DeepSeek。
 
-## 重要提示：与 claude-sdk 的区别
-
-- `claude-sdk/`：直接用某个厂商的 SDK 调一个模型，简单直接。
-- `langchain/`：是一个"抽象层/框架"，可以对接很多厂商模型（OpenAI、Claude、
-  本地模型等），并提供提示模板、记忆、工具编排、RAG、Agent 等能力。
-  适合做复杂点的应用，但封装多、上手略重。
-
-> 建议先学完 claude-sdk/ 有了"裸调模型"的体感，再对比 LangChain 的封装
-> 会更容易理解它解决了什么问题。
+> 目录故意命名为 `langchain-demo/`，因为如果叫 `langchain/`，本地目录会
+> 遮蔽 pip 安装的 `langchain` 包，导致 `import langchain` 导入错误。
 
 ## 安装与配置
 
 ```bash
-pip install -r langchain/requirements.txt
+venv/bin/pip install -r langchain-demo/requirements.txt
 ```
 
-LangChain 本身不绑定某个厂商，对接 Claude 需要装 langchain-anthropic；
-若用 OpenAI 则装 langchain-openai。本 module 示例以可灵活切换的方式演示。
-同样需要配置对应的 API Key（如 ANTHROPIC_API_KEY 或 OPENAI_API_KEY）。
+项目根目录 `.env` 需要配置：
 
-## 版本提醒
+```text
+DEEPSEEK_API_KEY=你的DeepSeek Key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
 
-网上很多 LangChain 教程是 0.x 时代的（用 Chain/LLMChain 等旧 API），
-而当前是 1.x。请以 https://python.langchain.ac.cn 的文档版本为准，
-本示例尽量贴近 1.x 新写法。
+`common.py` 会统一读取配置并创建 `ChatOpenAI`，模型默认是 `deepseek-chat`。
 
-## 文件说明
+## Demo 清单
 
-- `quickstart.py`：接入一个聊天模型并做最简单问答。
-- （后续可按需补充）提示模板 / 记忆 / 工具 / Agent / RAG 等示例。
+### 基础
+
+1. `quickstart.py`：invoke、stream、messages 三种基础调用
+2. `01_chat_models.py`：SystemMessage/HumanMessage、batch、stream、usage
+3. `02_prompt_templates.py`：ChatPromptTemplate、partial、MessagesPlaceholder
+4. `03_lcel_chains.py`：LCEL、RunnablePassthrough、RunnableParallel
+5. `04_output_parsers.py`：字符串、列表和 JSON 输出解析
+6. `05_structured_output.py`：Pydantic 校验和 with_structured_output
+
+### 记忆、工具和 Agent
+
+7. `06_memory.py`：LangGraph checkpointer 按 thread_id 保存会话
+8. `07_tool_calling.py`：bind_tools、tool_calls 和 ToolMessage 回传
+9. `08_agent.py`：create_agent 自动执行多步工具循环
+10. `09_rag.py`：切分、向量检索、上下文注入的 RAG 最小闭环
+11. `10_async_stream.py`：ainvoke、astream、abatch 和异步链
+
+### 可靠性、控制流和可观测性
+
+12. `11_retry_fallback.py`：with_retry、with_fallbacks
+13. `12_few_shot.py`：FewShotChatMessagePromptTemplate
+14. `13_message_trimming.py`：trim_messages 控制上下文长度
+15. `14_agent_hitl.py`：Agent 执行工具前暂停并等待人工批准
+16. `15_stream_events.py`：astream_events 观察链和模型事件
+
+## 运行方式
+
+```bash
+venv/bin/python langchain-demo/quickstart.py
+venv/bin/python langchain-demo/01_chat_models.py
+venv/bin/python langchain-demo/08_agent.py
+venv/bin/python langchain-demo/14_agent_hitl.py
+```
+
+Agent 人工审批案例支持自动测试：
+
+```bash
+CLAUDE_DEMO_APPROVAL=yes venv/bin/python langchain-demo/14_agent_hitl.py
+CLAUDE_DEMO_APPROVAL=no  venv/bin/python langchain-demo/14_agent_hitl.py
+```
+
+## 版本说明
+
+网上很多教程仍是 LangChain 0.x（LLMChain、旧 Memory API），本目录使用
+LangChain 1.x 的 Runnable、LCEL、create_agent 和 LangGraph checkpointer。
+
+DeepSeek 不提供 embedding API，因此 RAG 示例使用本地 HashEmbeddings 演示流程；
+生产环境可替换为 OpenAI、HuggingFace 或 BGE 等 embedding 服务。
