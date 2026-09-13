@@ -1,6 +1,6 @@
 # LangChain LLM Skill Router Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a LangChain-native structured-output router that selects Skills only when deterministic rules miss.
 
@@ -15,7 +15,7 @@
 **Files:**
 - Create: `tests/test_langchain_skill_router.py`
 
-- [ ] **Step 1: Add the failing router tests**
+- [x] **Step 1: Add the failing router tests**
 
 Create `tests/test_langchain_skill_router.py` with:
 
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run the tests to verify RED**
+- [x] **Step 2: Run the tests to verify RED**
 
 Run:
 
@@ -204,7 +204,7 @@ Expected: FAIL because `langchain-demo/llm_skill_router.py` does not exist.
 - Create: `langchain-demo/llm_skill_router.py`
 - Test: `tests/test_langchain_skill_router.py`
 
-- [ ] **Step 1: Add the minimal implementation**
+- [x] **Step 1: Add the minimal implementation**
 
 Create `langchain-demo/llm_skill_router.py` with:
 
@@ -305,7 +305,7 @@ class LangChainSkillRouter:
         )
 ```
 
-- [ ] **Step 2: Run the focused tests to verify GREEN**
+- [x] **Step 2: Run the focused tests to verify GREEN**
 
 Run:
 
@@ -315,7 +315,7 @@ venv/bin/python -m unittest tests.test_langchain_skill_router -v
 
 Expected: all tests PASS.
 
-- [ ] **Step 3: Run the existing router tests**
+- [x] **Step 3: Run the existing router tests**
 
 Run:
 
@@ -331,7 +331,7 @@ Expected: all tests PASS.
 - Modify: `langchain-demo/16_skill_loading.py`
 - Modify: `tests/test_langchain_skill_router.py`
 
-- [ ] **Step 1: Add a failing CLI inspection test**
+- [x] **Step 1: Add a failing CLI inspection test**
 
 Append this class before `if __name__ == "__main__":` in
 `tests/test_langchain_skill_router.py`:
@@ -368,7 +368,7 @@ class LangChainSkillLoadingCliTests(unittest.TestCase):
         self.assertIn("路由模式: hybrid（inspect 不调用兜底模型）", result.stdout)
 ```
 
-- [ ] **Step 2: Run the CLI test to verify RED**
+- [x] **Step 2: Run the CLI test to verify RED**
 
 Run:
 
@@ -378,7 +378,7 @@ venv/bin/python -m unittest tests.test_langchain_skill_router.LangChainSkillLoad
 
 Expected: FAIL because `--router` is not defined.
 
-- [ ] **Step 3: Import the hybrid router and LangChain fallback**
+- [x] **Step 3: Import the hybrid router and LangChain fallback**
 
 In `langchain-demo/16_skill_loading.py`, add:
 
@@ -398,7 +398,7 @@ from tools.skill_session import (
 )
 ```
 
-- [ ] **Step 4: Add the router builder**
+- [x] **Step 4: Add the router builder**
 
 Add this function before `run_agent()`:
 
@@ -416,7 +416,7 @@ def build_agent_router(
     )
 ```
 
-- [ ] **Step 5: Route before creating the Agent**
+- [x] **Step 5: Route before creating the Agent**
 
 Replace the manager setup and execution section in `run_agent()` with:
 
@@ -493,7 +493,7 @@ def run_agent(args: argparse.Namespace) -> None:
         print(messages[-1].content)
 ```
 
-- [ ] **Step 6: Add the CLI option**
+- [x] **Step 6: Add the CLI option**
 
 In `parse_args()`, add this argument after `--mode`:
 
@@ -506,7 +506,7 @@ In `parse_args()`, add this argument after `--mode`:
     )
 ```
 
-- [ ] **Step 7: Add a rule-miss scenario**
+- [x] **Step 7: Add a rule-miss scenario**
 
 Replace the third entry in `SESSION_SCENARIOS` with:
 
@@ -518,7 +518,7 @@ Replace the third entry in `SESSION_SCENARIOS` with:
     ),
 ```
 
-- [ ] **Step 8: Run the CLI and router tests to verify GREEN**
+- [x] **Step 8: Run the CLI and router tests to verify GREEN**
 
 Run:
 
@@ -528,7 +528,7 @@ venv/bin/python -m unittest tests.test_langchain_skill_router -v
 
 Expected: all tests PASS, including the CLI inspection test.
 
-- [ ] **Step 9: Verify the inspect command manually**
+- [x] **Step 9: Verify the inspect command manually**
 
 Run:
 
@@ -546,7 +546,7 @@ Expected: exits successfully without an API request and prints
 - Modify: `langchain-demo/README.md`
 - Modify: `langchain-demo/KNOWLEDGE_GUIDE.md`
 
-- [ ] **Step 1: Update the LangChain README**
+- [x] **Step 1: Update the LangChain README**
 
 In `langchain-demo/README.md`, replace the existing run examples with:
 
@@ -573,7 +573,7 @@ LangChain 结构化输出让模型从候选目录中选择 Skill；`--router rul
 `container.skills` 和代码执行工具。
 ```
 
-- [ ] **Step 2: Update the knowledge guide**
+- [x] **Step 2: Update the knowledge guide**
 
 In `langchain-demo/KNOWLEDGE_GUIDE.md`, add this subsection after the existing
 Agent-mode data flow section:
@@ -605,7 +605,7 @@ venv/bin/python langchain-demo/16_skill_loading.py \
 `--router hybrid` 在规则未命中时增加一次模型调用，换取更强的语义泛化能力。
 ````
 
-- [ ] **Step 3: Run the complete test suite**
+- [x] **Step 3: Run the complete test suite**
 
 Run:
 
@@ -615,7 +615,7 @@ venv/bin/python -m unittest discover -s tests -v
 
 Expected: all tests PASS.
 
-- [ ] **Step 4: Check the final diff**
+- [x] **Step 4: Check the final diff**
 
 Run:
 
@@ -627,7 +627,7 @@ git status --short
 Expected: no whitespace errors; only the intended source, test, and documentation
 files are modified.
 
-- [ ] **Step 5: Commit the implementation**
+- [x] **Step 5: Commit the implementation**
 
 Run:
 

@@ -1445,6 +1445,8 @@ Skill 和普通 Tool 的主要区别是：Skill 先提供“何时使用、按�
 
 ```text
 discover_skills()
+  -> RuleBasedSkillRouter 处理显式名称和 trigger
+  -> 规则未命中时 LangChainSkillRouter 调用结构化模型
   -> SkillSessionManager 按 session_id 保存已加载状态
   -> render() 只注入 name/description 和已加载正文
   -> create_agent(tools=[search_skills, read_skill, read_skill_resource])
@@ -1479,6 +1481,31 @@ def read_skill(name: str) -> str:
 venv/bin/python langchain-demo/16_skill_loading.py --mode agent
 venv/bin/python langchain-demo/16_skill_loading.py --mode agent --inspect
 ```
+
+### 2.1 规则兜底与主 Agent 工具选择
+
+`agent` 模式包含两个不同层次的模型参与方式：
+
+1. `--router hybrid` 在进入 Agent 前执行一次预路由。`RuleBasedSkillRouter`
+   先处理 `@skill:name` 和 trigger；只有规则未命中时，
+   `LangChainSkillRouter` 才通过 `with_structured_output()` 让模型返回
+   `skill_names` 和 `reason`。
+2. 主 Agent 仍拥有 `search_skills`、`read_skill` 和
+   `read_skill_resource` 工具，可以在执行任务时继续发现和加载 Skill。
+
+预路由模型只看到候选 Skill 的 name 和 description，不读取完整
+`SKILL.md`。模型返回的名称会再次与候选集合比对，随后交给
+`SkillSession.load()` 执行权限、去重和上下文预算检查。
+
+```bash
+venv/bin/python langchain-demo/16_skill_loading.py \
+  --mode agent --router hybrid --conversation
+venv/bin/python langchain-demo/16_skill_loading.py \
+  --mode agent --router rule --conversation
+```
+
+`--router rule` 延迟最低、行为可重复，但无法理解 trigger 之外的语义表达。
+`--router hybrid` 在规则未命中时增加一次模型调用，换取更强的语义泛化能力。
 
 ### 3. Prompt 模式：完整 Skill 直接进 SystemMessage
 

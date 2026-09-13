@@ -2,7 +2,8 @@
 """
 LangChain 加载 Skill 的三种模式。
 
-agent    : 只注入 Skill 目录，Agent 通过 search_skills 找到候选后，再调用
+agent    : 先用规则路由，未命中时默认通过 LangChain 结构化输出让模型选择
+          Skill 并预加载；主 Agent 仍可通过 search_skills 查找候选，再调用
           read_skill 渐进加载完整指令。会话状态相互隔离，默认使用 DeepSeek。
 
 prompt   : 把完整 SKILL.md 直接放进 SystemMessage，模型无需工具即可遵循。
@@ -11,8 +12,9 @@ anthropic: 使用 langchain-anthropic 的 container.skills，让 Anthropic 在�
           执行容器中加载托管 Skill。该模式需要官方 Anthropic 能力。
 
 运行:
-    python langchain-demo/16_skill_loading.py --mode agent --conversation --inspect
-    python langchain-demo/16_skill_loading.py --mode agent --conversation
+    python langchain-demo/16_skill_loading.py --mode agent --router hybrid --conversation
+    python langchain-demo/16_skill_loading.py --mode agent --router rule --conversation
+    python langchain-demo/16_skill_loading.py --mode agent --router hybrid --inspect
     python langchain-demo/16_skill_loading.py --mode prompt --inspect
     python langchain-demo/16_skill_loading.py --mode anthropic --inspect
 """
@@ -34,6 +36,7 @@ from langchain_core.messages import HumanMessage, SystemMessage  # noqa: E402
 from langchain_core.tools import tool  # noqa: E402
 
 from common import build_model  # noqa: E402
+from llm_skill_router import LangChainSkillRouter  # noqa: E402
 from tools.skill_loader import (  # noqa: E402
     SkillLoadError,
     SkillNotFoundError,
@@ -43,6 +46,7 @@ from tools.skill_loader import (  # noqa: E402
     render_full_context,
 )
 from tools.skill_session import (  # noqa: E402
+    HybridSkillRouter,
     RuleBasedSkillRouter,
     SkillSession,
     SkillSessionManager,
@@ -72,7 +76,7 @@ SESSION_SCENARIOS = (
     (
         "langchain-beta",
         ("developer",),
-        "请把这些改动整理成 release notes：新增导出功能，修复登录超时。",
+        "请把本次上线中用户能感知到的变化整理成一份面向客户的说明。",
     ),
 )
 
@@ -152,21 +156,36 @@ def build_agent_system_prompt(session: SkillSession) -> str:
     )
 
 
-def run_agent(args: argparse.Namespace) -> None:
-    manager = SkillSessionManager(
-        discover_skills(SKILL_ROOT),
-        router=RuleBasedSkillRouter(),
-        max_loaded_skills=4,
-        max_loaded_chars=40_000,
+def build_agent_router(
+    args: argparse.Namespace,
+    model=None,
+):
+    primary = RuleBasedSkillRouter()
+    if args.router == "rule" or model is None:
+        return primary
+    return HybridSkillRouter(
+        primary=primary,
+        fallback=LangChainSkillRouter(model),
     )
 
+
+def run_agent(args: argparse.Namespace) -> None:
+    skills = discover_skills(SKILL_ROOT)
+
     if args.inspect:
+        manager = SkillSessionManager(
+            skills,
+            router=RuleBasedSkillRouter(),
+            max_loaded_skills=4,
+            max_loaded_chars=40_000,
+        )
         for session_id, roles, prompt in get_agent_scenarios(args):
             session = manager.session(session_id, roles=roles)
             preview = session.route(prompt)
             tools = make_agent_tools(session)
             print(f"\n=== 会话 {session_id} ===")
             print(f"用户: {prompt}")
+            print(f"路由模式: {args.router}（inspect 不调用兜底模型）")
             print(f"规则预览加载: {', '.join(preview.selected_names) or '无'}")
             print(f"会话已加载: {', '.join(session.loaded_names) or '无'}")
             print("\n=== Agent tools ===")
@@ -181,9 +200,16 @@ def run_agent(args: argparse.Namespace) -> None:
         model=args.model or os.environ.get("DEEPSEEK_MODEL", "deepseek-chat"),
         temperature=0,
     )
+    manager = SkillSessionManager(
+        skills,
+        router=build_agent_router(args, model),
+        max_loaded_skills=4,
+        max_loaded_chars=40_000,
+    )
     for session_id, roles, prompt in get_agent_scenarios(args):
         session = manager.session(session_id, roles=roles)
-        # 每轮重新构造 Agent prompt，让上一轮通过工具加载的 Skill
+        context = session.route(prompt)
+        # 每轮重新构造 Agent prompt，让规则或模型预加载的 Skill
         # 在下一轮继续出现在 system prompt 中。
         agent = create_agent(
             model,
@@ -204,6 +230,9 @@ def run_agent(args: argparse.Namespace) -> None:
         messages = result["messages"]
         print(f"\n=== 会话 {session_id} ===")
         print(f"用户: {prompt}")
+        print(f"路由策略: {context.decision.strategy}")
+        print(f"路由原因: {context.decision.reason}")
+        print(f"本轮加载: {', '.join(context.selected_names) or '无'}")
         print(f"会话已加载: {', '.join(session.loaded_names) or '无'}")
         print("\n=== Agent 消息轨迹 ===")
         for message in messages:
@@ -294,6 +323,12 @@ def parse_args() -> argparse.Namespace:
         "--mode",
         choices=("agent", "prompt", "anthropic"),
         default="agent",
+    )
+    parser.add_argument(
+        "--router",
+        choices=("rule", "hybrid"),
+        default="hybrid",
+        help="agent 模式的路由方式：规则或规则未命中时的模型兜底",
     )
     parser.add_argument("--skill", default="text-reversal")
     parser.add_argument("--session-id", default="langchain-alpha")
