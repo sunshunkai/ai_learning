@@ -1,6 +1,6 @@
 # LangGraph Demo Learning Module Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Build `langgraph-demo/` as a 53-example Chinese learning module covering LangGraph 1.x with DeepSeek and deterministic offline modes.
 
@@ -121,7 +121,7 @@
 - Create: `langgraph-demo/requirements.txt`
 - Create: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Write failing tests for CLI parsing and fake structured output**
+- [x] **Step 1: Write failing tests for CLI parsing and fake structured output**
 
 Create `tests/test_langgraph_demo.py` with tests that:
 
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 2: Run the tests to verify RED**
+- [x] **Step 2: Run the tests to verify RED**
 
 Run:
 
@@ -181,7 +181,7 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL because `common.py` and the fixture package do not exist.
 
-- [ ] **Step 3: Implement the shared helper and fake model**
+- [x] **Step 3: Implement the shared helper and fake model**
 
 `common.py` exports:
 
@@ -222,7 +222,7 @@ pydantic>=2.7
 python-dotenv>=1.0
 ```
 
-- [ ] **Step 4: Run focused tests to verify GREEN**
+- [x] **Step 4: Run focused tests to verify GREEN**
 
 Run:
 
@@ -239,7 +239,7 @@ Expected: PASS.
 - Create all `langgraph-demo/c02_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add failing tests for state and reducer behavior**
+- [x] **Step 1: Add failing tests for state and reducer behavior**
 
 Test these exact contracts:
 
@@ -260,7 +260,7 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL with missing graph builders.
 
-- [ ] **Step 2: Implement chapter 1**
+- [x] **Step 2: Implement chapter 1**
 
 Each script uses `parser_for`, `add_common_args`, prints a Chinese banner, and
 contains a `main()` entry point.
@@ -272,7 +272,7 @@ contains a `main()` entry point.
 - `c01_03_graph_vs_functional.py` builds equivalent two-step graph and
   functional workflows and prints both results and selection guidance.
 
-- [ ] **Step 3: Implement chapter 2**
+- [x] **Step 3: Implement chapter 2**
 
 - `c02_01_state_schemas.py` contrasts TypedDict, Pydantic, and messages state.
 - `c02_02_reducers_messages.py` contrasts default overwrite with `add`,
@@ -284,7 +284,7 @@ contains a `main()` entry point.
 - `c02_05_compile_visualize.py` prints Mermaid text and writes PNG only when
   the optional renderer is available; PNG failure is reported, not fatal.
 
-- [ ] **Step 4: Run chapter tests and offline scripts**
+- [x] **Step 4: Run chapter tests and offline scripts**
 
 Run:
 
@@ -303,7 +303,7 @@ Expected: all commands exit 0.
 - Create all `langgraph-demo/c03_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Test:
 
@@ -321,7 +321,7 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL on missing builders.
 
-- [ ] **Step 2: Implement the six examples**
+- [x] **Step 2: Implement the six examples**
 
 Expose pure graph builders so tests do not need subprocesses:
 
@@ -338,7 +338,7 @@ The reliability example uses local deterministic functions, a retry policy, a
 node timeout, a cache policy, and runtime context. It must not require network
 access in offline mode.
 
-- [ ] **Step 3: Run focused tests and scripts**
+- [x] **Step 3: Run focused tests and scripts**
 
 Run:
 
@@ -358,7 +358,7 @@ Expected: all commands exit 0.
 - Create all `langgraph-demo/c04_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Test:
 
@@ -375,14 +375,14 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement the four examples**
+- [x] **Step 2: Implement the four examples**
 
 Use `langgraph.func.entrypoint` and `langgraph.func.task`. Keep API calls in
 module-level functions so tests can import them. Explain determinism,
 serialization, idempotency, and side effects in the docstring and
 `KNOWLEDGE_GUIDE.md`.
 
-- [ ] **Step 3: Run focused tests and scripts**
+- [x] **Step 3: Run focused tests and scripts**
 
 Run:
 
@@ -401,7 +401,7 @@ Expected: all commands exit 0.
 - Create all `langgraph-demo/c05_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused fake-model tests**
+- [x] **Step 1: Add focused fake-model tests**
 
 Test:
 
@@ -419,20 +419,20 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement warm-up and deterministic patterns**
+- [x] **Step 2: Implement warm-up and deterministic patterns**
 
 `c05_01` demonstrates structured output and tool calls without a graph.
 `c05_02` through `c05_06` implement the five official workflow patterns with
 small graph builders and deterministic offline responses.
 
-- [ ] **Step 3: Implement the ReAct agent**
+- [x] **Step 3: Implement the ReAct agent**
 
 `c05_07_react_tool_agent.py` uses `ToolNode`, `tools_condition`, and a
 conditional back-edge. The tool performs a safe local calculation such as
 shipping-cost calculation. Offline mode scripts one tool call followed by a
 final answer.
 
-- [ ] **Step 4: Run focused tests and scripts**
+- [x] **Step 4: Run focused tests and scripts**
 
 Run:
 
@@ -451,7 +451,7 @@ Expected: all commands exit 0.
 - Create all `langgraph-demo/c06_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Test:
 
@@ -470,7 +470,7 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement memory examples**
+- [x] **Step 2: Implement memory examples**
 
 Use `InMemorySaver` for `c06_01-c06_03`. Use only the standard library plus
 `langgraph-checkpoint` for `c06_04`; if `langgraph-checkpoint-sqlite` is not
@@ -482,7 +482,7 @@ Use `InMemoryStore` for `c06_05` and a deterministic local embedding object.
 `c06_06` demonstrates trimming, deletion, and summary-based replacement
 without mutating the original checkpoint history.
 
-- [ ] **Step 3: Run focused tests and scripts**
+- [x] **Step 3: Run focused tests and scripts**
 
 Run:
 
@@ -503,7 +503,7 @@ Expected: all commands exit 0; SQLite script exits 0 with PASS or SKIP.
 - Create all `langgraph-demo/c07_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused interrupt and error tests**
+- [x] **Step 1: Add focused interrupt and error tests**
 
 Test:
 
@@ -522,20 +522,20 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement interrupt examples**
+- [x] **Step 2: Implement interrupt examples**
 
 Every interrupt example compiles with `InMemorySaver` and a stable test thread
 ID. Print the first pause state, resume command, and final state. Do not wrap
 `interrupt()` in `try/except`.
 
-- [ ] **Step 3: Implement reliability and error reproduction**
+- [x] **Step 3: Implement reliability and error reproduction**
 
 Use deterministic functions for retry and timeout. `c07_07` accepts
 `--case recursion|missing-checkpointer|invalid-return|concurrent-update|bad-history|multiple-subgraphs`
 and catches the documented exception to print its cause and fix. Each case
 must exit 0 after successfully reproducing the expected error.
 
-- [ ] **Step 4: Run focused tests and scripts**
+- [x] **Step 4: Run focused tests and scripts**
 
 Run:
 
@@ -555,7 +555,7 @@ Expected: all commands exit 0.
 - Create all `langgraph-demo/c08_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused stream tests**
+- [x] **Step 1: Add focused stream tests**
 
 Test:
 
@@ -573,14 +573,14 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement state, message, custom, and event streaming examples**
+- [x] **Step 2: Implement state, message, custom, and event streaming examples**
 
 Use `stream_mode` and `version="v2"` where supported. Offline model streaming
 must produce deterministic chunks. `c08_05` demonstrates event lifecycle and
 one small custom projection. `c08_06` prints whether tracing is enabled; it
 does not require a LangSmith key.
 
-- [ ] **Step 3: Run focused tests and scripts**
+- [x] **Step 3: Run focused tests and scripts**
 
 Run:
 
@@ -601,7 +601,7 @@ Expected: all commands exit 0.
 - Create all `langgraph-demo/c09_*.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add focused tests**
+- [x] **Step 1: Add focused tests**
 
 Test:
 
@@ -619,14 +619,14 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement subgraph examples**
+- [x] **Step 2: Implement subgraph examples**
 
 `c09_01` and `c09_02` compare the two invocation forms. `c09_03` shows
 persistence inheritance and streamed child output. `c09_04` uses a CLI
 `--pattern {supervisor,handoff,agent-tool,parallel}` switch to run four small
 patterns from one teaching script.
 
-- [ ] **Step 3: Run focused tests and scripts**
+- [x] **Step 3: Run focused tests and scripts**
 
 Run:
 
@@ -648,7 +648,7 @@ Expected: all commands exit 0.
 - Create: `langgraph-demo/fixtures/sqlite_schema.py`
 - Modify: `tests/test_langgraph_demo.py`
 
-- [ ] **Step 1: Add application-level tests**
+- [x] **Step 1: Add application-level tests**
 
 Test:
 
@@ -665,21 +665,21 @@ venv/bin/python -m unittest tests.test_langgraph_demo -v
 
 Expected: FAIL.
 
-- [ ] **Step 2: Implement testing and data-agent examples**
+- [x] **Step 2: Implement testing and data-agent examples**
 
 `c10_01` tests a node directly and then runs a graph from a selected node.
 `c10_02` implements retrieve-grade-rewrite-answer routing with local documents.
 `c10_03` uses an in-memory or temporary SQLite database, read-only SQL
 validation, and an interrupt before query execution.
 
-- [ ] **Step 3: Implement application structure and capstone**
+- [x] **Step 3: Implement application structure and capstone**
 
 `c10_04` creates a small `app/` layout example in printed form and provides a
 network-free FastAPI/Studio setup check. It must not start a server during
 offline verification. `c10_05` integrates routing, tool calls, subgraphs, HITL,
 checkpointing, and streaming with deterministic offline responses.
 
-- [ ] **Step 4: Run focused tests and scripts**
+- [x] **Step 4: Run focused tests and scripts**
 
 Run:
 
@@ -701,7 +701,7 @@ Expected: all commands exit 0.
 - Create: `langgraph-demo/KNOWLEDGE_GUIDE.md`
 - Modify: `README.md`
 
-- [ ] **Step 1: Implement the verification runner**
+- [x] **Step 1: Implement the verification runner**
 
 The runner supports:
 
@@ -717,7 +717,7 @@ It discovers the exact 53 scripts, passes the selected mode to each script,
 prints `PASS`, `FAIL`, or documented `SKIP`, captures the final 30 output
 lines on failure, and exits non-zero if a required example fails.
 
-- [ ] **Step 2: Write the Chinese README**
+- [x] **Step 2: Write the Chinese README**
 
 Include:
 
@@ -730,7 +730,7 @@ Include:
 - DeepSeek limitations;
 - safety notes.
 
-- [ ] **Step 3: Write the Chinese knowledge guide**
+- [x] **Step 3: Write the Chinese knowledge guide**
 
 For every example, include:
 
@@ -743,12 +743,12 @@ For every example, include:
 7. exercises;
 8. official documentation links.
 
-- [ ] **Step 4: Update the root README**
+- [x] **Step 4: Update the root README**
 
 Add `langgraph-demo/` to the layout, installation commands, learning route,
 run examples, and project description.
 
-- [ ] **Step 5: Run the complete verification set**
+- [x] **Step 5: Run the complete verification set**
 
 Run:
 
@@ -768,7 +768,7 @@ pass, and the list contains 53 examples.
 - Modify only if a provider-specific limitation is discovered:
   `langgraph-demo/README.md`
 
-- [ ] **Step 1: Check credentials without printing secrets**
+- [x] **Step 1: Check credentials without printing secrets**
 
 Run:
 
@@ -778,7 +778,7 @@ if rg -q '^DEEPSEEK_API_KEY=.+' .env; then echo configured; else echo missing; f
 
 Expected: `configured` or a documented skip.
 
-- [ ] **Step 2: Run bounded live groups**
+- [x] **Step 2: Run bounded live groups**
 
 Run:
 
@@ -791,7 +791,7 @@ venv/bin/python langgraph-demo/verify_examples.py --live --group c10
 Expected: examples pass, or a provider limitation is documented with the
 observed error and a working alternative path.
 
-- [ ] **Step 3: Re-run the complete offline suite after any live fixes**
+- [x] **Step 3: Re-run the complete offline suite after any live fixes**
 
 Run:
 
@@ -804,11 +804,11 @@ Expected: PASS.
 
 ## Self-Review Checklist
 
-- [ ] Every spec example appears in the exact file map.
-- [ ] Every model-powered example supports `--offline`.
-- [ ] No script prints or commits a secret.
-- [ ] Tests assert state and control flow, not exact LLM prose.
-- [ ] Optional dependencies produce documented SKIP behavior.
-- [ ] `verify_examples.py` reports 53 examples.
-- [ ] Root and module documentation point to official sources.
-- [ ] Existing LangChain and AgentScope behavior remains unchanged.
+- [x] Every spec example appears in the exact file map.
+- [x] Every model-powered example supports `--offline`.
+- [x] No script prints or commits a secret.
+- [x] Tests assert state and control flow, not exact LLM prose.
+- [x] Optional dependencies produce documented SKIP behavior.
+- [x] `verify_examples.py` reports 53 examples.
+- [x] Root and module documentation point to official sources.
+- [x] Existing LangChain and AgentScope behavior remains unchanged.
