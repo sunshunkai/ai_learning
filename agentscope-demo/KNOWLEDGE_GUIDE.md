@@ -559,6 +559,10 @@ mcp__{server_name}__{tool_name}
 Skill 是 `SKILL.md` 指令集，不是直接调用对象。Agent 先调用 SkillViewer
 读取完整 Markdown，再用已有工具执行。
 
+`c07_01_workspace_skill.py` 使用项目共享的 `skills/`，为每个会话创建
+独立的 `LocalWorkspace` 和 `AgentState`。目录元数据可以复用，但消息历史、
+已加载 Skill 和执行文件不会在会话之间共享。
+
 ## 14. A2A 协议
 
 `A2AAgent` 是远端 A2A 智能体的本地代理：

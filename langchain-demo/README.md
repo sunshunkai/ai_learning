@@ -48,7 +48,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 14. `13_message_trimming.py`：trim_messages 控制上下文长度
 15. `14_agent_hitl.py`：Agent 执行工具前暂停并等待人工批准
 16. `15_stream_events.py`：astream_events 观察链和模型事件
-17. `16_skill_loading.py`：本地 Skill 目录/完整注入，以及 ChatAnthropic 容器 Skill
+17. `16_skill_loading.py`：Agent 搜索/读取/资源渐进加载，以及容器 Skill
 
 ## 运行方式
 
@@ -57,7 +57,8 @@ venv/bin/python langchain-demo/quickstart.py
 venv/bin/python langchain-demo/01_chat_models.py
 venv/bin/python langchain-demo/08_agent.py
 venv/bin/python langchain-demo/14_agent_hitl.py
-venv/bin/python langchain-demo/16_skill_loading.py --mode agent
+venv/bin/python langchain-demo/16_skill_loading.py --mode agent --conversation --inspect
+venv/bin/python langchain-demo/16_skill_loading.py --mode agent --conversation
 venv/bin/python langchain-demo/16_skill_loading.py --mode prompt
 venv/bin/python langchain-demo/16_skill_loading.py --mode anthropic --inspect
 ```
@@ -77,6 +78,7 @@ LangChain 1.x 的 Runnable、LCEL、create_agent 和 LangGraph checkpointer。
 DeepSeek 不提供 embedding API，因此 RAG 示例使用本地 HashEmbeddings 演示流程；
 生产环境可替换为 OpenAI、HuggingFace 或 BGE 等 embedding 服务。
 
-`16_skill_loading.py` 的 `agent` 和 `prompt` 模式仍使用 DeepSeek，展示通用
-Skill 加载语义；`anthropic` 模式依赖 `langchain-anthropic` 的
+`16_skill_loading.py` 的 `agent` 模式使用 `search_skills`、`read_skill` 和
+`read_skill_resource` 三个工具实现渐进加载，并按会话隔离状态；`prompt`
+模式保留完整注入对照；`anthropic` 模式依赖 `langchain-anthropic` 的
 `container.skills` 和代码执行工具，需使用支持这些能力的官方 Anthropic 端点。

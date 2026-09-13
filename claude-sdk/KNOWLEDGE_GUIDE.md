@@ -1540,25 +1540,29 @@ Skill(
 需要复杂 YAML、frontmatter 类型校验、继承或引用关系，应使用正式解析库，
 并且不要把所有本地文件都盲目塞给模型。
 
-### 3. `skill_loading.py --mode local`
+### 3. `skill_loading.py --mode session`
 
-本地模式的数据流是：
+默认会话语义的数据流是：
 
 ```text
 skills/text-reversal/SKILL.md
   -> discover_skills()
-  -> find_skill()
-  -> render_full_context()
+  -> 权限过滤与 Skill 目录
+  -> RuleBasedSkillRouter
+  -> 规则未命中时 AnthropicSkillRouter
+  -> SkillSession 渐进加载完整正文
+  -> render()
   -> messages.create(system=..., messages=[...])
   -> 模型按 SKILL.md 的步骤回答
 ```
 
 关键点：
 
-1. Skill 被当作 system prompt，而不是 tools。
-2. 一次只加载当前任务需要的 Skill，避免把所有 Skill 都塞进上下文。
-3. 默认模型仍使用 `ANTHROPIC_MODEL`，所以 DeepSeek 兼容端点也可以测试。
-4. `--inspect` 会在不发出网络请求的情况下打印最终 system prompt 和请求参数。
+1. 会话状态保存在 `SkillSessionManager` 中，以 `session_id` 隔离。
+2. 已加载 Skill 在后续轮次复用，只加载本轮新增命中的 Skill。
+3. `--conversation` 运行两个会话，`--inspect` 不调用真实模型。
+4. `--mode local` 仍保留显式单 Skill 注入，`--mode hosted` 会把选中 Skill
+   懒上传并通过 `container.skills` 挂载。
 
 执行：
 

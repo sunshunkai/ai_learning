@@ -1,6 +1,9 @@
 ---
 name: text-reversal
 description: Reverse user-provided text while preserving case, punctuation, and whitespace.
+triggers: reverse, reversal, 反转, 倒序, 逆序
+allowed_roles: "*"
+version: 1.0.0
 ---
 
 # Text Reversal

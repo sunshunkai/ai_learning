@@ -173,12 +173,16 @@ venv/bin/python agentscope-demo/c06_02_rag.py
 
 | 文件 | 学习点 |
 | --- | --- |
-| `c07_01_workspace_skill.py` | LocalWorkspace、Skill |
+| `c07_01_workspace_skill.py` | 多 Skill Workspace、SkillViewer、多会话隔离 |
 | `c07_02_mcp_server.py` + `c07_03_mcp_tool.py` | 本地 STDIO MCP |
 | `c07_04_a2a_server.py` + `c07_05_a2a_client.py` | A2A 1.0 |
 | `c07_06_console_chat.py` | launch_console、ConsoleRenderer |
 
 MCP：
+
+```bash
+venv/bin/python agentscope-demo/c07_01_workspace_skill.py
+```
 
 ```bash
 venv/bin/python agentscope-demo/c07_03_mcp_tool.py

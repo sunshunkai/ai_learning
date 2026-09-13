@@ -12,9 +12,10 @@ YAML 库，因此可以在不同模块中复用。
 
 from __future__ import annotations
 
+import mimetypes
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 SKILL_FILENAME = "SKILL.md"
 
@@ -35,8 +36,12 @@ class Skill:
     description: str
     directory: Path
     path: Path
+    # markdown 保留完整原文件，注入 system prompt 时使用。
     markdown: str
+    # body 去掉 frontmatter，适合只展示或处理 Skill 正文。
     body: str
+    # metadata 保留 triggers、allowed_roles、version 等扩展字段。
+    metadata: Mapping[str, str]
 
 
 def _coerce_roots(roots: str | Path | Iterable[str | Path]) -> list[Path]:
@@ -45,8 +50,11 @@ def _coerce_roots(roots: str | Path | Iterable[str | Path]) -> list[Path]:
     return [Path(root) for root in roots]
 
 
-def _parse_frontmatter(markdown: str, directory: Path) -> tuple[str, str, str]:
-    """解析 SKILL.md 最简 frontmatter，返回 name、description 和正文。"""
+def _parse_frontmatter(
+    markdown: str,
+    directory: Path,
+) -> tuple[str, str, str, dict[str, str]]:
+    """解析 SKILL.md 最简 frontmatter，返回名称、描述、正文和元数据。"""
     lines = markdown.splitlines()
     if not lines or lines[0].strip() not in {"---", "..."}:
         raise SkillLoadError(f"{directory / SKILL_FILENAME} 缺少起始 frontmatter 分隔符")
@@ -57,6 +65,7 @@ def _parse_frontmatter(markdown: str, directory: Path) -> tuple[str, str, str]:
     if end >= len(lines):
         raise SkillLoadError(f"{directory / SKILL_FILENAME} 的 frontmatter 没有结束分隔符")
 
+    # 这里只解析简单的 key: value frontmatter，复杂 YAML 应换正式解析库。
     metadata: dict[str, str] = {}
     for raw_line in lines[1:end]:
         line = raw_line.strip()
@@ -80,7 +89,7 @@ def _parse_frontmatter(markdown: str, directory: Path) -> tuple[str, str, str]:
     if not description:
         description = f"执行 {directory / SKILL_FILENAME} 中描述的流程"
 
-    return name, description, body
+    return name, description, body, metadata
 
 
 def discover_skills(
@@ -91,6 +100,7 @@ def discover_skills(
     """从若干根目录递归发现并加载 ``SKILL.md``。"""
     candidates: list[Path] = []
     for root in _coerce_roots(roots):
+        # 允许直接传一个 SKILL.md，也允许传包含多个 Skill 的目录。
         if root.is_file():
             if root.name != SKILL_FILENAME:
                 raise SkillLoadError(f"{root} 不是 {SKILL_FILENAME}")
@@ -106,6 +116,7 @@ def discover_skills(
             )
         )
 
+    # 多个 root 可能指向同一个文件，用 resolve 后的路径去重。
     seen: set[Path] = set()
     skills: list[Skill] = []
     for path in candidates:
@@ -115,7 +126,10 @@ def discover_skills(
         seen.add(resolved)
 
         markdown = resolved.read_text(encoding="utf-8")
-        name, description, body = _parse_frontmatter(markdown, resolved.parent)
+        name, description, body, metadata = _parse_frontmatter(
+            markdown,
+            resolved.parent,
+        )
         skills.append(
             Skill(
                 name=name,
@@ -124,6 +138,7 @@ def discover_skills(
                 path=resolved,
                 markdown=markdown,
                 body=body,
+                metadata=metadata,
             )
         )
 
@@ -180,6 +195,59 @@ def render_full_context(skills: Iterable[Skill]) -> str:
     return "\n".join(blocks).rstrip()
 
 
+def load_skill_resource(skill: Skill, relative_path: str) -> str:
+    """Load one Skill resource without allowing path traversal."""
+    resource_path = Path(relative_path)
+    # 模型只能提供 Skill 内部的相对路径，不能访问任意文件。
+    if resource_path.is_absolute():
+        raise SkillLoadError("Skill 资源路径必须是相对路径")
+
+    # resolve 后再检查父目录，能够同时挡住 ../ 和符号链接逃逸。
+    root = skill.directory.resolve()
+    target = (root / resource_path).resolve()
+    try:
+        target.relative_to(root)
+    except ValueError as exc:
+        raise SkillLoadError("Skill 资源路径不能越过 Skill 目录") from exc
+
+    if not target.is_file():
+        raise SkillLoadError(f"Skill 资源不存在: {relative_path}")
+    return target.read_text(encoding="utf-8")
+
+
 def upload_files(skill: Skill) -> list[tuple[str, bytes, str]]:
-    """生成 Anthropic Skills API ``files`` 参数接受的单文件上传列表。"""
-    return [(SKILL_FILENAME, skill.markdown.encode("utf-8"), "text/markdown")]
+    """生成 Anthropic Skills API 接受的完整 Skill 文件上传列表。"""
+    root = skill.directory.resolve()
+    # SKILL.md 会被单独放在首位，这里收集它引用的其他资源。
+    resources = []
+    for path in root.rglob("*"):
+        if not path.is_file() or path.name == SKILL_FILENAME:
+            continue
+        relative = path.relative_to(root)
+        # 不把隐藏文件、缓存文件或虚拟环境内容上传到远端 Skill。
+        if any(
+            part.startswith(".") or part == "__pycache__"
+            for part in relative.parts
+        ):
+            continue
+        resolved = path.resolve()
+        try:
+            resolved.relative_to(root)
+        except ValueError as exc:
+            raise SkillLoadError(
+                f"Skill 资源不能位于 Skill 目录之外: {relative}"
+            ) from exc
+        resources.append((relative, resolved))
+
+    uploaded: list[tuple[str, bytes, str]] = [
+        (SKILL_FILENAME, skill.markdown.encode("utf-8"), "text/markdown")
+    ]
+    for relative, path in sorted(resources, key=lambda item: str(item[0])):
+        media_type = (
+            mimetypes.guess_type(path.name)[0]
+            or "application/octet-stream"
+        )
+        uploaded.append(
+            (str(relative), path.read_bytes(), media_type)
+        )
+    return uploaded

@@ -14,7 +14,11 @@ ai-learning/
 ├── .gitignore         # 忽略 venv / __pycache__ / .env 等
 ├── venv/              # Python 虚拟环境（首次 pip install 后生成）
 ├── skills/            # 跨模块复用的本地 Skill 目录（SKILL.md）
-│   └── text-reversal/ # 反转文本的示例 Skill
+│   ├── text-reversal/ # 反转文本
+│   ├── incident-triage/ # 错误与故障分析（含按需资源）
+│   ├── json-normalizer/ # JSON 规范化
+│   ├── python-project-starter/ # Python 项目脚手架
+│   └── release-notes/ # 发布说明整理
 ├── basics/            # 【module 1】Python 基础语法（零基础从这里开始）
 │   ├── __init__.py    # 模块学习顺序说明
 │   ├── hello.py       # 第一个可运行脚本
@@ -42,7 +46,7 @@ ai-learning/
 │   ├── thinking_chat.py # extended thinking
 │   ├── prompt_caching.py # prompt caching
 │   ├── interactive_chat.py # 交互式多轮命令行
-│   ├── skill_loading.py # 本地 Skill 注入 / 托管 Skill 容器加载
+│   ├── skill_loading.py # 会话路由 / 渐进加载 / 托管 Skill 容器
 │   └── requirements.txt
 ├── agentscope-demo/   # 【module 3】AgentScope 2.x（DeepSeek）
 │   ├── README.md      # 安装、学习路线和运行命令
@@ -59,7 +63,8 @@ ai-learning/
 └── tools/             # 公用小工具（跨 module 共享）
     ├── __init__.py
     ├── load_env.py    # 从 .env 加载环境变量
-    └── skill_loader.py # 发现/解析/渲染 SKILL.md
+    ├── skill_loader.py # 发现/解析/渲染 SKILL.md
+    └── skill_session.py # 权限、路由、会话状态与加载预算
 ```
 
 ## 如何新增一个 module（想学新主题时）
@@ -169,6 +174,7 @@ cp .env.example .env      # Windows: copy .env.example .env
 python basics/hello.py
 python claude-sdk/env_check.py    # 先自检环境
 python claude-sdk/basic_chat.py
+python claude-sdk/skill_loading.py --mode session --conversation --inspect
 python agentscope-demo/c01_01_env_check.py
 python agentscope-demo/c03_01_basic_agent.py
 ```

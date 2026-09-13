@@ -60,10 +60,11 @@ DeepSeek 会自动映射到自己的模型。
 13. `thinking_chat.py`：解析 extended thinking 与最终文本块
 14. `prompt_caching.py`：cache_control 与缓存 token 统计
 15. `interactive_chat.py`：带 `/exit`、`/clear`、`/history` 的交互式会话
-16. `skill_loading.py`：本地 SKILL.md 注入，以及托管 Skill 的上传和容器加载
+16. `skill_loading.py`：按会话自动路由、渐进加载，以及托管 Skill 的上传和容器加载
 
 `common.py` 是公共工具，负责加载 `.env`、创建同步/异步客户端和提取文本。
-`tools/skill_loader.py` 是跨模块共享的本地 Skill 发现和解析工具。
+`tools/skill_loader.py` 负责发现和解析本地 Skill，`tools/skill_session.py`
+负责权限过滤、会话状态、路由和加载预算。
 
 ## 运行示例
 
@@ -73,8 +74,10 @@ venv/bin/python claude-sdk/basic_chat.py
 venv/bin/python claude-sdk/human_approval.py
 venv/bin/python claude-sdk/multi_tool_loop.py
 venv/bin/python claude-sdk/async_chat.py
-venv/bin/python claude-sdk/skill_loading.py --mode local
-venv/bin/python claude-sdk/skill_loading.py --mode hosted --inspect
+venv/bin/python claude-sdk/skill_loading.py --mode session --conversation --inspect
+venv/bin/python claude-sdk/skill_loading.py --mode session --conversation
+venv/bin/python claude-sdk/skill_loading.py --mode local --inspect
+venv/bin/python claude-sdk/skill_loading.py --mode hosted --conversation --inspect
 ```
 
 人工审批案例支持自动测试：
@@ -91,9 +94,10 @@ CLAUDE_DEMO_APPROVAL=no  venv/bin/python claude-sdk/human_approval.py
 - `thinking_chat.py` 的 `budget_tokens` 可能被兼容端点忽略。
 - `prompt_caching.py` 在官方 Anthropic 上体现缓存命中；DeepSeek 目前会忽略
   `cache_control`，缓存 token 统计通常为 0。
-- `skill_loading.py --mode local` 只把 SKILL.md 放进 system prompt，DeepSeek
-  兼容端点通常可以运行；`--mode hosted` 使用 Anthropic 1.5 的 Skills/Container
-  API，中转端点一般不支持，先运行 `--inspect` 查看参数。
+- `skill_loading.py --mode session` 先生成允许使用的 Skill 目录，规则无法判断
+  时才调用模型路由，再把当前会话已加载的 SKILL.md 放进 system prompt。
+- `--mode local` 保留显式单 Skill 注入；`--mode hosted` 使用 Anthropic 1.5
+  的 Skills/Container API，并按会话懒上传和挂载，中转端点一般不支持。
 - Files、Batch、Token Counting、MCP、Skills 等属于 Anthropic 官方差异能力，
   使用前需检查当前中转服务是否支持。
 

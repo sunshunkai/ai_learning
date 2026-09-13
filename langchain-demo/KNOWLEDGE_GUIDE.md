@@ -1428,10 +1428,11 @@ common.py
 ### 1. 文件定位
 
 `16_skill_loading.py` 补上了本模块此前缺失的 Skill 示例。它复用
-`tools/skill_loader.py` 和根目录 `skills/text-reversal/SKILL.md`，演示三种
+`tools/skill_loader.py` 和根目录 `skills/`，演示三种
 加载方式：
 
-- `agent`：目录注入 + `read_skill` 工具懒加载
+- `agent`：`search_skills` 搜索 + `read_skill` 正文 + `read_skill_resource`
+  资源三级渐进加载
 - `prompt`：完整 SKILL.md 注入 SystemMessage
 - `anthropic`：`ChatAnthropic.container.skills` 原生托管加载
 
@@ -1444,10 +1445,13 @@ Skill 和普通 Tool 的主要区别是：Skill 先提供“何时使用、按�
 
 ```text
 discover_skills()
-  -> render_catalog() 只注入 name/description
-  -> create_agent(tools=[read_skill], system_prompt=catalog)
-  -> Agent 判断任务相关后调用 read_skill("text-reversal")
+  -> SkillSessionManager 按 session_id 保存已加载状态
+  -> render() 只注入 name/description 和已加载正文
+  -> create_agent(tools=[search_skills, read_skill, read_skill_resource])
+  -> Agent 先搜索候选
+  -> Agent 判断任务相关后调用 read_skill(name)
   -> 工具返回完整 SKILL.md
+  -> 只有需要时才调用 read_skill_resource
   -> Agent 按指令继续执行
 ```
 
@@ -1463,8 +1467,8 @@ def read_skill(name: str) -> str:
 这种设计接近 Agent Skill 的常见语义：
 
 1. 先让模型看到低成本目录，判断是否相关。
-2. 只有需要时才读取完整指令。
-3. Skill 目录可以作为可复用知识层，代码和业务规则一起维护。
+2. 只有需要时才读取完整指令和引用资源。
+3. 每个会话独立记录已加载 Skill，避免跨会话污染。
 
 但这不是自动的“框架级 Skill 管理”。LangChain 本身并不要求 `SKILL.md`，
 这里是通过 Agent system prompt 和工具组合出来的通用加载方式。
