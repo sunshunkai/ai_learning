@@ -280,5 +280,105 @@ class WorkflowAgentTests(unittest.TestCase):
         self.assertEqual(result["messages"][-1].content, "运费为 30 元。")
 
 
+class PersistenceMemoryTests(unittest.TestCase):
+    def test_thread_ids_isolate_message_history(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        from c06_01_thread_checkpointer import build_thread_graph
+
+        graph = build_thread_graph(InMemorySaver())
+        first_config = {"configurable": {"thread_id": "first"}}
+        second_config = {"configurable": {"thread_id": "second"}}
+
+        graph.invoke(
+            {"messages": [{"role": "user", "content": "one"}]},
+            config=first_config,
+        )
+        first = graph.invoke(
+            {"messages": [{"role": "user", "content": "two"}]},
+            config=first_config,
+        )
+        second = graph.invoke(
+            {"messages": [{"role": "user", "content": "other"}]},
+            config=second_config,
+        )
+
+        self.assertEqual(len(first["messages"]), 2)
+        self.assertEqual(len(second["messages"]), 1)
+
+    def test_state_history_contains_checkpoints(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        from c06_02_state_history_replay import build_history_graph
+
+        graph = build_history_graph(InMemorySaver())
+        config = {"configurable": {"thread_id": "history"}}
+        graph.invoke({"count": 0}, config=config)
+        graph.invoke({"count": 10}, config=config)
+
+        history = list(graph.get_state_history(config))
+
+        self.assertGreaterEqual(len(history), 3)
+        self.assertEqual(history[0].values["count"], 12)
+
+    def test_time_travel_fork_changes_only_new_branch(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        from c06_03_fork_time_travel import (
+            build_time_travel_graph,
+            fork_before_write,
+        )
+
+        graph = build_time_travel_graph(InMemorySaver())
+        config = {"configurable": {"thread_id": "fork-test"}}
+        original = graph.invoke({"topic": "A"}, config=config)
+        original_snapshot = graph.get_state(config)
+        fork_config = fork_before_write(graph, config, "B")
+        forked = graph.invoke(None, config=fork_config)
+        current = graph.get_state(original_snapshot.config)
+
+        self.assertEqual(original["result"], "A-draft")
+        self.assertEqual(forked["result"], "B-draft")
+        self.assertEqual(current.values["result"], "A-draft")
+
+    def test_store_namespaces_isolate_users(self) -> None:
+        from c06_05_store_long_term_memory import build_memory_store
+
+        store = build_memory_store()
+        store.put(("user", "alice", "memories"), "food", {"text": "喜欢面食"})
+        store.put(("user", "bob", "memories"), "food", {"text": "喜欢米饭"})
+
+        alice = store.get(("user", "alice", "memories"), "food")
+        bob = store.get(("user", "bob", "memories"), "food")
+
+        self.assertEqual(alice.value["text"], "喜欢面食")
+        self.assertEqual(bob.value["text"], "喜欢米饭")
+
+    def test_memory_management_removes_old_messages(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        from c06_06_memory_management import (
+            build_memory_graph,
+            trim_oldest_messages,
+        )
+
+        graph = build_memory_graph(InMemorySaver())
+        config = {"configurable": {"thread_id": "trim"}}
+        graph.invoke(
+            {
+                "messages": [
+                    {"role": "user", "content": "1"},
+                    {"role": "assistant", "content": "2"},
+                    {"role": "user", "content": "3"},
+                ]
+            },
+            config=config,
+        )
+
+        trim_oldest_messages(graph, config, keep=1)
+
+        self.assertEqual(len(graph.get_state(config).values["messages"]), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
