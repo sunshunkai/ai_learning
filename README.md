@@ -67,6 +67,15 @@ ai-learning/
 │   ├── c01_01_env_check.py ... c10_05_capstone_research_assistant.py
 │   ├── verify_examples.py # 离线/在线批量验证
 │   └── requirements.txt
+├── rag-learning/      # 【module 6】RAG 专项（组件化 Embedding / VectorStore）
+│   ├── README.md      # 模块概览、运行方式
+│   ├── KNOWLEDGE_GUIDE.md # 逐文件知识点与详细说明
+│   ├── common.py      # DeepSeek 模型与示例文档
+│   ├── factory.py     # RAGConfig / RAGFactory / provider 工厂
+│   ├── demo.py        # 快速入口，通过参数切换 provider
+│   ├── 01_document_loading.py ... 12_retrieval_scores.py
+│   ├── verify_examples.py # 离线批量验证
+│   └── requirements.txt
 └── tools/             # 公用小工具（跨 module 共享）
     ├── __init__.py
     ├── load_env.py    # 从 .env 加载环境变量
@@ -117,6 +126,8 @@ touch ai-learning/xxx/__init__.py
    目录懒加载。（LangChain 本身可以对接 Claude，很多概念是相通的。）
 5. **`langgraph-demo/`**：学习 State、Graph API、Functional API、持久化、
    HITL、流式、子图、多 Agent，以及 RAG/SQL 综合项目。
+6. **`rag-learning/`**：专项学习 RAG，重点练习如何封装 Embedding 和 VectorStore，
+   让后续切换本地、阿里云或其他 provider 时尽量不改业务逻辑。
 
 ## 环境准备（首次使用）
 
@@ -146,6 +157,7 @@ pip install -r claude-sdk/requirements.txt
 pip install -r agentscope-demo/requirements.txt
 pip install -r langchain-demo/requirements.txt
 pip install -r langgraph-demo/requirements.txt
+pip install -r rag-learning/requirements.txt
 ```
 
 ### 3. 配置 API Key（学 claude-sdk / agentscope-demo / langchain 时需要）
