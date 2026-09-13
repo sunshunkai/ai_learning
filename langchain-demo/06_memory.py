@@ -13,6 +13,8 @@ from common import build_model
 
 
 def main():
+    # create_agent 返回一个带状态图的 Agent；checkpointer 负责按会话保存状态。
+    # tools=[] 表示这里只演示多轮消息记忆，不让 Agent 调用外部工具。
     agent = create_agent(
         build_model(temperature=0.4),
         tools=[],
@@ -20,15 +22,18 @@ def main():
         checkpointer=InMemorySaver(),
     )
 
+    # thread_id 是记忆的隔离键：同一 ID 续接历史，不同 ID 从空状态开始。
     config = {"configurable": {"thread_id": "alice"}}
 
     result1 = agent.invoke(
+        # Agent 使用 messages 作为输入/输出状态，新增消息会追加到会话历史。
         {"messages": [HumanMessage("我叫小明，我在学 LangChain。")]},
         config=config,
     )
     reply1 = result1["messages"][-1].content
     print(f"第一轮: {reply1}\n")
 
+    # 第二轮只传新问题；checkpointer 会根据 thread_id 自动恢复前一轮消息。
     result2 = agent.invoke(
         {"messages": [HumanMessage("我叫什么名字？我在学什么？")]},
         config=config,

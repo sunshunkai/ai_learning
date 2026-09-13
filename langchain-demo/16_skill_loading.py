@@ -28,6 +28,7 @@ import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+# 脚本既可在项目根目录运行，也可直接运行，因此显式补上项目模块搜索路径。
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -53,6 +54,7 @@ from tools.skill_session import (  # noqa: E402
 )
 
 SKILL_ROOT = PROJECT_ROOT / "skills"
+# Anthropic 容器模式和本地 DeepSeek 路由使用不同的默认模型。
 DEFAULT_SKILL_MODEL = os.environ.get("ANTHROPIC_SKILL_MODEL", "claude-opus-5")
 CODE_EXECUTION_TOOL = {
     "type": "code_execution_20260521",
@@ -82,6 +84,7 @@ SESSION_SCENARIOS = (
 
 
 def make_agent_tools(session: SkillSession):
+    # 工具通过闭包绑定当前 session，从而只在它允许且已加载的 Skill 范围内操作。
     @tool
     def search_skills(query: str) -> str:
         """Search the allowed Skill catalog without loading full instructions."""
@@ -89,6 +92,7 @@ def make_agent_tools(session: SkillSession):
         normalized = query.casefold().strip()
         ranked = []
         for skill in session.allowed_skills:
+            # 在名称、描述和触发词中做轻量关键词打分，不调用额外模型。
             haystack = " ".join(
                 (
                     skill.name,
@@ -106,6 +110,7 @@ def make_agent_tools(session: SkillSession):
                 score += 1
             ranked.append((score, skill))
 
+        # 分数降序；同分时按名称升序，保证结果稳定可测试。
         ranked.sort(key=lambda item: (-item[0], item[1].name))
         matches = [skill for score, skill in ranked if score > 0]
         if not matches:
@@ -146,6 +151,7 @@ def get_agent_scenarios(args: argparse.Namespace):
 
 def build_agent_system_prompt(session: SkillSession) -> str:
     # render() 只带上当前会话已经加载的完整正文，未加载项仅保留目录。
+    # 这样既能控制上下文成本，也能通过工具调用逐步“翻开”需要的 Skill。
     return (
         session.render().system_prompt
         + "\n\n执行要求：\n"
@@ -162,7 +168,9 @@ def build_agent_router(
 ):
     primary = RuleBasedSkillRouter()
     if args.router == "rule" or model is None:
+        # rule 模式完全不调用模型，便于确定性对比和离线检查。
         return primary
+    # hybrid 先用规则命中；规则无结果时才让结构化模型从候选集中兜底选择。
     return HybridSkillRouter(
         primary=primary,
         fallback=LangChainSkillRouter(model),
@@ -173,6 +181,7 @@ def run_agent(args: argparse.Namespace) -> None:
     skills = discover_skills(SKILL_ROOT)
 
     if args.inspect:
+        # inspect 只展示发现、路由预览和工具 Schema，不读取 API Key 或调用模型。
         manager = SkillSessionManager(
             skills,
             router=RuleBasedSkillRouter(),
@@ -203,11 +212,13 @@ def run_agent(args: argparse.Namespace) -> None:
     manager = SkillSessionManager(
         skills,
         router=build_agent_router(args, model),
+        # 会话级预算防止多条消息不断加载 Skill，最终撑爆模型上下文。
         max_loaded_skills=4,
         max_loaded_chars=40_000,
     )
     for session_id, roles, prompt in get_agent_scenarios(args):
         session = manager.session(session_id, roles=roles)
+        # route 会尝试预加载 Skill；即使未命中，主 Agent 仍可调用搜索工具。
         context = session.route(prompt)
         # 每轮重新构造 Agent prompt，让规则或模型预加载的 Skill
         # 在下一轮继续出现在 system prompt 中。
@@ -242,6 +253,7 @@ def run_agent(args: argparse.Namespace) -> None:
 
 
 def run_prompt(args: argparse.Namespace) -> None:
+    # prompt 模式一次性注入完整 Skill，适合对照“全量上下文”方案。
     skill = find_skill(discover_skills(SKILL_ROOT), args.skill)
     system_content = render_full_context([skill])
     messages = [
@@ -267,6 +279,7 @@ def run_prompt(args: argparse.Namespace) -> None:
 
 
 def build_anthropic_model(args: argparse.Namespace):
+    # Anthropic 模式延迟导入，避免普通 DeepSeek 示例强依赖该可选集成。
     try:
         from langchain_anthropic import ChatAnthropic
     except ImportError as exc:
@@ -276,6 +289,7 @@ def build_anthropic_model(args: argparse.Namespace):
         ) from exc
 
     base_url = os.environ.get("ANTHROPIC_BASE_URL")
+    # container.skills 让 Anthropic 在托管代码容器中按 skill_id 加载 Skill。
     return ChatAnthropic(
         model=args.model or DEFAULT_SKILL_MODEL,
         api_key=os.environ.get("ANTHROPIC_API_KEY"),
@@ -295,6 +309,7 @@ def build_anthropic_model(args: argparse.Namespace):
 
 def run_anthropic(args: argparse.Namespace) -> None:
     model = build_anthropic_model(args)
+    # 代码执行工具使容器中的 Skill 能实际运行代码或生成文件。
     bound_model = model.bind_tools([CODE_EXECUTION_TOOL])
 
     if args.inspect:
@@ -360,6 +375,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    # anthropic 模式有更合适的默认任务，但显式传入 --prompt 时仍以用户输入为准。
     if args.mode == "anthropic" and args.prompt == DEFAULT_LOCAL_PROMPT:
         args.prompt = DEFAULT_ANTHROPIC_PROMPT
     try:

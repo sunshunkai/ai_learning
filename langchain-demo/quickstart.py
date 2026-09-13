@@ -11,20 +11,24 @@ from common import build_model
 
 
 def main():
+    # build_model() 返回的是 LangChain Runnable，可以统一使用 invoke/stream 等方法。
     model = build_model()
 
     print("=== 方式一：invoke 简单问答 ===")
+    # invoke 等待模型生成完整结果后，再返回一条 AIMessage。
     answer = model.invoke("用一句话说明 LangChain 是做什么的？")
     print(f"回复: {answer.content}\n")
 
     print("=== 方式二：stream 流式输出 ===")
     print("流式: ", end="", flush=True)
+    # stream 逐块返回 AIMessageChunk；打印时通常只关心 content。
     for chunk in model.stream("请从 1 数到 5，每个数字一行。"):
         print(chunk.content, end="", flush=True)
     print("\n")
 
     print("=== 方式三：messages 消息列表 ===")
     messages = [
+        # SystemMessage 定义行为和边界，HumanMessage 承载本轮用户输入。
         SystemMessage("你是一个简短回答问题的助手。"),
         HumanMessage("1+1 等于几？"),
     ]

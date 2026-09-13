@@ -15,6 +15,7 @@ def main():
     model = build_model(temperature=0.4)
 
     print("=== ChatPromptTemplate 基础用法 ===")
+    # {concept} 是运行时变量，format_messages 会把它替换成真实内容。
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "你是资深 AI 讲师，回答要简洁。"),
@@ -28,11 +29,14 @@ def main():
         print(f"[{msg.type}] {msg.content}")
 
     print("\n=== prompt | model 组成 chain ===")
+    # LCEL 的 | 表示把左侧输出作为右侧输入：
+    # dict -> PromptValue -> AIMessage。
     chain = prompt | model
     reply = chain.invoke({"concept": "temperature 参数"})
     print(f"回复: {reply.content}\n")
 
     print("=== partial：预填部分变量 ===")
+    # partial 固定 style 后，调用方只需要继续提供 question。
     partial_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "请用{style}的风格回复。"),
@@ -43,6 +47,7 @@ def main():
     print(f"回复: {reply.content}\n")
 
     print("=== MessagesPlaceholder：插入历史消息 ===")
+    # 历史消息数量不固定时，用占位符把一组 Message 原样插入模板。
     history_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "你是客服助手。"),

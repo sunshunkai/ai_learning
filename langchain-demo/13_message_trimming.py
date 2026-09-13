@@ -28,6 +28,9 @@ def main():
         HumanMessage("记住我的名字，并告诉我下一步学什么。"),
     ]
 
+    # trim_messages 根据 token 预算保留最近且语义完整的消息窗口。
+    # strategy="last" 表示超长时优先保留末尾；start/end_on 确保窗口从用户问题
+    # 开始并以用户问题结束，避免把 AI 的半轮回答截断后单独送入模型。
     trimmed = trim_messages(
         history,
         max_tokens=60,
@@ -43,6 +46,7 @@ def main():
     for message in trimmed:
         print(f"[{message.type}] {message.content}")
 
+    # 裁剪只改变发送给模型的历史，不会修改原始 history 列表。
     reply = build_model(temperature=0.2).invoke(trimmed)
     print(f"\n模型回复: {reply.content}")
 

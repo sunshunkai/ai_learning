@@ -19,6 +19,7 @@ def main():
     model = build_model(temperature=0.2)
 
     print("=== StrOutputParser：把模型输出转成字符串 ===")
+    # Parser 放在链尾，把统一格式的 AIMessage 转换成业务需要的 Python 类型。
     prompt = ChatPromptTemplate.from_messages(
         [
             ("human", "把下面内容翻译成中文：{text}"),
@@ -28,6 +29,7 @@ def main():
     print(chain.invoke({"text": "Hello, LangChain"}), "\n")
 
     print("=== CommaSeparatedListOutputParser：解析成 list ===")
+    # 解析器能生成格式说明；把它放进 system prompt 可提高输出可解析率。
     list_parser = CommaSeparatedListOutputParser()
     list_prompt = ChatPromptTemplate.from_messages(
         [
@@ -39,6 +41,7 @@ def main():
     print(list_chain.invoke({}), "\n")
 
     print("=== JsonOutputParser：解析成 dict ===")
+    # 模型仍负责生成文本，Parser 负责把符合 JSON 语法的文本解析为 dict。
     json_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", "只输出 JSON，不要输出 markdown 代码块。"),

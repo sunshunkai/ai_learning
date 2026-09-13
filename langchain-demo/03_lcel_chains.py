@@ -14,6 +14,7 @@ from common import build_model
 
 def main():
     model = build_model(temperature=0.8)
+    # StrOutputParser 把 AIMessage 提取成普通字符串，方便后续打印或处理。
     parser = StrOutputParser()
 
     print("=== 最简单的 LCEL chain ===")
@@ -23,10 +24,13 @@ def main():
             ("human", "围绕{topic}讲一个程序员笑话。"),
         ]
     )
+    # LCEL 链可以像函数一样 invoke；输入字典会依次流过每个组件。
     joke_chain = joke_prompt | model | parser
     print(joke_chain.invoke({"topic": "Python"}), "\n")
 
     print("=== RunnablePassthrough：透传输入 ===")
+    # 直接把字符串传给 Prompt 会缺少变量名，因此先包装成 {"topic": 原输入}。
+    # RunnablePassthrough 表示不改数据，只把输入继续向后传递。
     passthrough_chain = (
         {"topic": RunnablePassthrough()}
         | joke_prompt
@@ -43,6 +47,8 @@ def main():
         ]
     )
     summary_chain = summary_prompt | model | parser
+    # RunnableParallel 用同一个输入并发执行多个分支，最后按 key 汇总结果。
+    # 每个分支只读取自己需要的 topic 或 text，不会互相覆盖。
     parallel_chain = RunnableParallel(
         joke=joke_chain,
         summary=summary_chain,
