@@ -1,0 +1,11 @@
+# LangGraph 核心与 DeepSeek OpenAI 兼容接入
+langgraph>=1.2,<2
+langgraph-checkpoint>=4.2,<5
+langchain>=1.4,<2
+langchain-openai>=1.6,<2
+pydantic>=2.7
+python-dotenv>=1.0
+
+# 可选：SQLite Checkpointer。需要时执行：
+# venv/bin/pip install langgraph-checkpoint-sqlite>=3,<4
+
