@@ -190,5 +190,95 @@ class FunctionalApiTests(unittest.TestCase):
         self.assertEqual(interop_workflow.invoke(" hi "), "HI-GRAPH")
 
 
+class WorkflowAgentTests(unittest.TestCase):
+    def test_prompt_chaining_runs_in_order(self) -> None:
+        from c05_02_prompt_chaining import build_prompt_chain_graph
+
+        model = DeterministicFakeChatModel(
+            text_responses=["outline", "draft", "final"]
+        )
+
+        result = build_prompt_chain_graph(model).invoke({"topic": "LangGraph"})
+
+        self.assertEqual(result["final"], "final")
+
+    def test_parallelization_combines_all_answers(self) -> None:
+        from c05_03_parallelization import build_parallel_graph
+
+        model = DeterministicFakeChatModel(text_responses=["A", "B"])
+
+        result = build_parallel_graph(model).invoke({"question": "如何学习？"})
+
+        self.assertEqual(set(result["answers"]), {"A", "B"})
+
+    def test_routing_uses_structured_decision(self) -> None:
+        from c05_04_routing import RouteSelection, build_routing_graph
+
+        model = DeterministicFakeChatModel(
+            structured_responses={
+                RouteSelection: RouteSelection(route="math"),
+            }
+        )
+
+        result = build_routing_graph(model).invoke({"question": "2+2"})
+
+        self.assertEqual(result["route"], "math")
+
+    def test_orchestrator_worker_collects_drafts(self) -> None:
+        from c05_05_orchestrator_worker import (
+            Plan,
+            build_orchestrator_graph,
+        )
+
+        planner = DeterministicFakeChatModel(
+            structured_responses={
+                Plan: Plan(subtasks=["背景", "示例"]),
+            }
+        )
+        worker = DeterministicFakeChatModel(text_responses=["draft-a", "draft-b"])
+
+        result = build_orchestrator_graph(planner, worker).invoke(
+            {"topic": "Agent"}
+        )
+
+        self.assertEqual(set(result["drafts"]), {"draft-a", "draft-b"})
+
+    def test_evaluator_optimizer_stops_on_pass(self) -> None:
+        from c05_06_evaluator_optimizer import build_evaluator_graph
+
+        generator = DeterministicFakeChatModel(
+            text_responses=["draft-1", "draft-2"]
+        )
+        evaluator = DeterministicFakeChatModel(
+            text_responses=["REVISE", "PASS"]
+        )
+
+        result = build_evaluator_graph(generator, evaluator).invoke(
+            {"task": "写一句介绍", "rounds": 0}
+        )
+
+        self.assertEqual(result["draft"], "draft-2")
+        self.assertEqual(result["rounds"], 2)
+
+    def test_react_agent_executes_tool_and_returns_final_answer(self) -> None:
+        from c05_07_react_tool_agent import build_react_agent
+
+        model = DeterministicFakeChatModel(
+            tool_responses=[
+                {
+                    "name": "calculate_shipping",
+                    "args": {"weight_kg": 2, "distance_km": 10},
+                }
+            ],
+            text_responses=["运费为 30 元。"],
+        )
+
+        result = build_react_agent(model).invoke(
+            {"messages": [{"role": "user", "content": "计算运费"}]}
+        )
+
+        self.assertEqual(result["messages"][-1].content, "运费为 30 元。")
+
+
 if __name__ == "__main__":
     unittest.main()
