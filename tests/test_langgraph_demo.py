@@ -580,5 +580,66 @@ class SubgraphMultiAgentTests(unittest.TestCase):
         self.assertEqual(result["result"], "研究结果：LangGraph")
 
 
+class ApplicationCapstoneTests(unittest.TestCase):
+    def test_partial_execution_resumes_after_first_node(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        from c10_01_testing_partial_execution import build_pipeline_graph
+
+        graph = build_pipeline_graph(InMemorySaver())
+        config = {"configurable": {"thread_id": "partial"}}
+        paused = graph.invoke(
+            {"value": 1},
+            config=config,
+            interrupt_after=["step_one"],
+        )
+        resumed = graph.invoke(None, config=config)
+
+        self.assertEqual(paused["value"], 2)
+        self.assertEqual(resumed["value"], 4)
+
+    def test_rag_retrieval_finds_relevant_document(self) -> None:
+        from c10_02_agentic_rag import retrieve_documents
+        from fixtures.documents import load_documents
+
+        results = retrieve_documents("state graph reducers", load_documents())
+
+        self.assertEqual(results[0]["id"], "langgraph-state")
+
+    def test_sql_guard_rejects_write_statement(self) -> None:
+        from c10_03_sql_agent_hitl import validate_readonly_sql
+
+        with self.assertRaises(ValueError):
+            validate_readonly_sql("DELETE FROM orders")
+        self.assertEqual(
+            validate_readonly_sql("SELECT * FROM orders"),
+            "SELECT * FROM orders",
+        )
+
+    def test_capstone_runs_tool_and_human_approval(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.types import Command
+
+        from c10_05_capstone_research_assistant import (
+            RouteDecision,
+            build_capstone_graph,
+        )
+
+        model = DeterministicFakeChatModel(
+            structured_responses={
+                RouteDecision: RouteDecision(route="research"),
+            },
+            text_responses=["最终研究摘要：LangGraph 适合有状态编排。"],
+        )
+        graph = build_capstone_graph(model, InMemorySaver())
+        config = {"configurable": {"thread_id": "capstone-test"}}
+        paused = graph.invoke({"question": "介绍 LangGraph"}, config=config)
+        final = graph.invoke(Command(resume=True), config=config)
+
+        self.assertIn("__interrupt__", paused)
+        self.assertTrue(final["approved"])
+        self.assertIn("最终研究摘要", final["answer"])
+
+
 if __name__ == "__main__":
     unittest.main()
