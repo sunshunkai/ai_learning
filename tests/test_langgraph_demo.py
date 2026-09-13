@@ -464,5 +464,72 @@ class HumanInTheLoopReliabilityTests(unittest.TestCase):
         self.assertEqual(resumed["count"], 2)
 
 
+class StreamingObservabilityTests(unittest.TestCase):
+    def test_values_and_updates_streams(self) -> None:
+        from c08_01_stream_values_updates import (
+            build_stream_graph,
+            collect_modes,
+        )
+
+        parts = collect_modes(build_stream_graph(), {"value": 0})
+        types = {part["type"] for part in parts}
+
+        self.assertIn("values", types)
+        self.assertIn("updates", types)
+
+    def test_message_stream_contains_ai_content(self) -> None:
+        from c08_02_stream_messages import build_message_stream_graph
+
+        model = DeterministicFakeChatModel(text_responses=["hello stream"])
+        graph = build_message_stream_graph(model)
+        contents = [
+            part["data"][0].content
+            for part in graph.stream(
+                {"messages": [{"role": "user", "content": "hi"}]},
+                stream_mode="messages",
+                version="v2",
+            )
+        ]
+
+        self.assertIn("hello stream", contents)
+
+    def test_custom_stream_receives_progress(self) -> None:
+        from c08_03_custom_tasks_checkpoints import build_custom_graph
+
+        events = list(
+            build_custom_graph().stream(
+                {"value": 0},
+                stream_mode="custom",
+                version="v2",
+            )
+        )
+
+        self.assertEqual(events[0]["data"]["progress"], 50)
+
+    def test_multiple_modes_include_subgraph_custom_event(self) -> None:
+        from c08_04_multiple_modes_subgraphs import build_parent_graph
+
+        parts = list(
+            build_parent_graph().stream(
+                {"text": "hello"},
+                stream_mode=["updates", "custom"],
+                version="v2",
+            )
+        )
+
+        self.assertTrue(any(part["type"] == "custom" for part in parts))
+        self.assertTrue(any(part["type"] == "updates" for part in parts))
+
+    def test_event_stream_contains_lifecycle_events(self) -> None:
+        from c08_05_event_streaming import (
+            build_event_graph,
+            collect_event_methods,
+        )
+
+        methods = collect_event_methods(build_event_graph())
+
+        self.assertIn("values", methods)
+
+
 if __name__ == "__main__":
     unittest.main()
