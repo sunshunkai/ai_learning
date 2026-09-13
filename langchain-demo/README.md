@@ -2,6 +2,8 @@
 
 本目录学习 LangChain 1.x，并通过 OpenAI 兼容接口接入 DeepSeek。
 
+逐文件知识扫盲见 [`KNOWLEDGE_GUIDE.md`](./KNOWLEDGE_GUIDE.md)。
+
 > 目录故意命名为 `langchain-demo/`，因为如果叫 `langchain/`，本地目录会
 > 遮蔽 pip 安装的 `langchain` 包，导致 `import langchain` 导入错误。
 
@@ -46,6 +48,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 14. `13_message_trimming.py`：trim_messages 控制上下文长度
 15. `14_agent_hitl.py`：Agent 执行工具前暂停并等待人工批准
 16. `15_stream_events.py`：astream_events 观察链和模型事件
+17. `16_skill_loading.py`：本地 Skill 目录/完整注入，以及 ChatAnthropic 容器 Skill
 
 ## 运行方式
 
@@ -54,6 +57,9 @@ venv/bin/python langchain-demo/quickstart.py
 venv/bin/python langchain-demo/01_chat_models.py
 venv/bin/python langchain-demo/08_agent.py
 venv/bin/python langchain-demo/14_agent_hitl.py
+venv/bin/python langchain-demo/16_skill_loading.py --mode agent
+venv/bin/python langchain-demo/16_skill_loading.py --mode prompt
+venv/bin/python langchain-demo/16_skill_loading.py --mode anthropic --inspect
 ```
 
 Agent 人工审批案例支持自动测试：
@@ -70,3 +76,7 @@ LangChain 1.x 的 Runnable、LCEL、create_agent 和 LangGraph checkpointer。
 
 DeepSeek 不提供 embedding API，因此 RAG 示例使用本地 HashEmbeddings 演示流程；
 生产环境可替换为 OpenAI、HuggingFace 或 BGE 等 embedding 服务。
+
+`16_skill_loading.py` 的 `agent` 和 `prompt` 模式仍使用 DeepSeek，展示通用
+Skill 加载语义；`anthropic` 模式依赖 `langchain-anthropic` 的
+`container.skills` 和代码执行工具，需使用支持这些能力的官方 Anthropic 端点。

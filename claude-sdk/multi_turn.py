@@ -27,7 +27,7 @@ def main():
 
     # 初始化对话历史（role 只有两种：user / assistant）
     messages = [
-        {"role": "user", "content": "我叫顺凯，是一名 Java 开发，正在学 Python 和 AI。"},
+        {"role": "user", "content": "我叫Nathan，是一名 Java 开发，正在学 Python 和 AI。"},
     ]
 
     # 用来跟 Claude 对话的函数：传入用户输入，返回 Claude 回复

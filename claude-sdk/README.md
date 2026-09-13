@@ -1,7 +1,9 @@
 # Claude SDK 学习模块
 
 本目录学习 Anthropic 官方 Claude SDK（Python 版），覆盖基础调用、流式、
-工具调用、人工审批、结构化输出、异步、异常处理和 thinking 等能力。
+工具调用、人工审批、结构化输出、异步、异常处理、thinking 和 Skill 等能力。
+
+逐文件知识扫盲见 [`KNOWLEDGE_GUIDE.md`](./KNOWLEDGE_GUIDE.md)。
 
 ## 前置：安装依赖
 
@@ -17,6 +19,7 @@ venv/bin/pip install -r claude-sdk/requirements.txt
 ANTHROPIC_API_KEY=你的Key
 ANTHROPIC_BASE_URL=接口地址
 ANTHROPIC_MODEL=模型名
+ANTHROPIC_SKILL_MODEL=托管Skill使用的模型名（可选）
 ```
 
 如果使用 DeepSeek 的 Anthropic 兼容端点：
@@ -57,8 +60,10 @@ DeepSeek 会自动映射到自己的模型。
 13. `thinking_chat.py`：解析 extended thinking 与最终文本块
 14. `prompt_caching.py`：cache_control 与缓存 token 统计
 15. `interactive_chat.py`：带 `/exit`、`/clear`、`/history` 的交互式会话
+16. `skill_loading.py`：本地 SKILL.md 注入，以及托管 Skill 的上传和容器加载
 
 `common.py` 是公共工具，负责加载 `.env`、创建同步/异步客户端和提取文本。
+`tools/skill_loader.py` 是跨模块共享的本地 Skill 发现和解析工具。
 
 ## 运行示例
 
@@ -68,6 +73,8 @@ venv/bin/python claude-sdk/basic_chat.py
 venv/bin/python claude-sdk/human_approval.py
 venv/bin/python claude-sdk/multi_tool_loop.py
 venv/bin/python claude-sdk/async_chat.py
+venv/bin/python claude-sdk/skill_loading.py --mode local
+venv/bin/python claude-sdk/skill_loading.py --mode hosted --inspect
 ```
 
 人工审批案例支持自动测试：
@@ -84,8 +91,11 @@ CLAUDE_DEMO_APPROVAL=no  venv/bin/python claude-sdk/human_approval.py
 - `thinking_chat.py` 的 `budget_tokens` 可能被兼容端点忽略。
 - `prompt_caching.py` 在官方 Anthropic 上体现缓存命中；DeepSeek 目前会忽略
   `cache_control`，缓存 token 统计通常为 0。
-- Files、Batch、Token Counting、MCP 等属于 Anthropic 官方差异能力，使用前需检查
-  当前中转服务是否支持。
+- `skill_loading.py --mode local` 只把 SKILL.md 放进 system prompt，DeepSeek
+  兼容端点通常可以运行；`--mode hosted` 使用 Anthropic 1.5 的 Skills/Container
+  API，中转端点一般不支持，先运行 `--inspect` 查看参数。
+- Files、Batch、Token Counting、MCP、Skills 等属于 Anthropic 官方差异能力，
+  使用前需检查当前中转服务是否支持。
 
 ## 关于 API Key
 

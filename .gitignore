@@ -23,3 +23,7 @@ dist/
 .pytest_cache/
 .ipynb_checkpoints/
 *.log
+
+# ---- AgentScope 本地服务运行时数据 ----
+agentscope-demo/agent_service.db
+agentscope-demo/service_workspaces/

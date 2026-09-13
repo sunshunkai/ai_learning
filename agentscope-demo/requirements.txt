@@ -1,0 +1,19 @@
+# AgentScope 2.0.9dev 文档基线：安装 GitHub 对应源码提交
+agentscope @ git+https://github.com/agentscope-ai/agentscope.git@b82253ba1b680a67091c4de32f074477c30ba416
+# openai 3.x 的 httpx2/httpcore2 在 Python 3.13 流式关闭时会产生噪音错误
+openai>=2.54,<3
+
+# RAG 向量库与文档解析
+qdrant-client>=1.9
+
+# Agent Service / A2A
+fastapi>=0.115
+uvicorn[standard]>=0.30
+a2a-sdk>=1.1.1
+apscheduler>=3
+sqlalchemy[asyncio]>=2.0
+alembic>=1.13
+aiosqlite>=0.20
+
+# 项目公共 .env 加载
+python-dotenv>=1.0.0

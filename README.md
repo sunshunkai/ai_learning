@@ -1,8 +1,8 @@
 # AI Learning 学习项目
 
 > 一个模块化的 Python AI 应用开发学习仓库。项目采用「单仓库、多模块」
-> 的组织方式，将 Python 基础、LLM SDK、LangChain，以及后续可能引入的
-> Agent、RAG 等主题拆分到独立目录中，便于按主题学习和按需扩展。
+> 的组织方式，将 Python 基础、LLM SDK、AgentScope、LangChain 等主题
+> 拆分到独立目录中，便于按主题学习和按需扩展。
 > 各模块保持独立演进，并在内容迭代时尽量兼容已有学习路径与代码示例。
 
 ## 目录结构
@@ -13,6 +13,8 @@ ai-learning/
 ├── .env.example       # API Key 配置模板（复制为 .env 并填 Key）
 ├── .gitignore         # 忽略 venv / __pycache__ / .env 等
 ├── venv/              # Python 虚拟环境（首次 pip install 后生成）
+├── skills/            # 跨模块复用的本地 Skill 目录（SKILL.md）
+│   └── text-reversal/ # 反转文本的示例 Skill
 ├── basics/            # 【module 1】Python 基础语法（零基础从这里开始）
 │   ├── __init__.py    # 模块学习顺序说明
 │   ├── hello.py       # 第一个可运行脚本
@@ -40,16 +42,24 @@ ai-learning/
 │   ├── thinking_chat.py # extended thinking
 │   ├── prompt_caching.py # prompt caching
 │   ├── interactive_chat.py # 交互式多轮命令行
+│   ├── skill_loading.py # 本地 Skill 注入 / 托管 Skill 容器加载
 │   └── requirements.txt
-├── langchain-demo/    # 【module 3】LangChain（框架层，1.x 写法）
+├── agentscope-demo/   # 【module 3】AgentScope 2.x（DeepSeek）
+│   ├── README.md      # 安装、学习路线和运行命令
+│   ├── KNOWLEDGE_GUIDE.md # 官方文档与 Demo 的知识整合
+│   ├── common.py      # DeepSeek 模型公共工厂
+│   ├── c01_02_basic_model.py ... c08_01_agent_service.py
+│   └── requirements.txt
+├── langchain-demo/    # 【module 4】LangChain（框架层，1.x 写法）
 │   ├── README.md      # 本 module 使用说明
 │   ├── common.py      # DeepSeek 模型工厂
 │   ├── quickstart.py  # invoke / stream / messages
-│   ├── 01_chat_models.py ... 15_stream_events.py
+│   ├── 01_chat_models.py ... 16_skill_loading.py
 │   └── requirements.txt
 └── tools/             # 公用小工具（跨 module 共享）
     ├── __init__.py
-    └── load_env.py    # 从 .env 加载环境变量
+    ├── load_env.py    # 从 .env 加载环境变量
+    └── skill_loader.py # 发现/解析/渲染 SKILL.md
 ```
 
 ## 如何新增一个 module（想学新主题时）
@@ -87,9 +97,12 @@ touch ai-learning/xxx/__init__.py
 ## 学习路线（强烈建议按顺序）
 
 1. **`basics/`**：先跑通 Python 基础（约 1 周）。没有这个基础，直接看 AI SDK 会很吃力。
-2. **`claude-sdk/`**：用 Claude SDK 感受"在代码里调大模型"，最简单直接。
-3. **`langchain-demo/`**：看完 Claude SDK 后，再对比 LangChain 这类框架怎么做编排。
-   （LangChain 本身可以对接 Claude，很多概念是相通的。）
+2. **`claude-sdk/`**：用 Claude SDK 感受"在代码里调大模型"，并学习 Skill
+   的本地注入和托管容器加载，最简单直接。
+3. **`agentscope-demo/`**：学习 AgentScope 2.x 的 Agent、工具、权限、RAG、
+   记忆、工作区、MCP 和服务化能力。
+4. **`langchain-demo/`**：对比 LangChain 这类框架怎么做编排，包括 Skill
+   目录懒加载。（LangChain 本身可以对接 Claude，很多概念是相通的。）
 
 ## 环境准备（首次使用）
 
@@ -116,13 +129,17 @@ source venv/bin/activate
 # 先学哪个 module，就装哪个的依赖
 pip install -r basics/requirements.txt
 pip install -r claude-sdk/requirements.txt
+pip install -r agentscope-demo/requirements.txt
 pip install -r langchain-demo/requirements.txt
 ```
 
-### 3. 配置 API Key（学 claude-sdk / langchain 时需要）
+### 3. 配置 API Key（学 claude-sdk / agentscope-demo / langchain 时需要）
 
 Claude SDK 需要 Anthropic 的 API Key。国内直连有限制，通常需要代理或
 兼容 Anthropic 格式的中转服务。配置方式有两种，任选其一：
+
+AgentScope 与 LangChain demo 使用 DeepSeek 的 OpenAI 兼容接口，需要在
+`.env` 中配置 `DEEPSEEK_API_KEY`。
 
 **方式 A：手动 export（临时，仅当前终端有效）**
 
@@ -152,6 +169,8 @@ cp .env.example .env      # Windows: copy .env.example .env
 python basics/hello.py
 python claude-sdk/env_check.py    # 先自检环境
 python claude-sdk/basic_chat.py
+python agentscope-demo/c01_01_env_check.py
+python agentscope-demo/c03_01_basic_agent.py
 ```
 
 ## 常见问题
