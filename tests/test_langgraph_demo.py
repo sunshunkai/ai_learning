@@ -531,5 +531,54 @@ class StreamingObservabilityTests(unittest.TestCase):
         self.assertIn("values", methods)
 
 
+class SubgraphMultiAgentTests(unittest.TestCase):
+    def test_compiled_subgraph_runs_as_parent_node(self) -> None:
+        from c09_01_subgraph_as_node import build_parent_graph
+
+        result = build_parent_graph().invoke({"text": "hello"})
+
+        self.assertEqual(result["result"], "HELLO")
+
+    def test_subgraph_inside_node_translates_state(self) -> None:
+        from c09_02_subgraph_in_node import build_parent_graph
+
+        result = build_parent_graph().invoke({"text": "hello"})
+
+        self.assertEqual(result["child_output"], "HELLO")
+        self.assertNotIn("private_child_note", result)
+
+    def test_subgraph_stream_exposes_child_progress(self) -> None:
+        from c09_03_subgraph_persistence_stream import build_parent_graph
+
+        parts = list(
+            build_parent_graph().stream(
+                {"text": "hello"},
+                config={"configurable": {"thread_id": "subgraph-stream-test"}},
+                stream_mode="custom",
+                subgraphs=True,
+                version="v2",
+            )
+        )
+
+        self.assertTrue(any(part.get("ns") for part in parts))
+
+    def test_supervisor_routes_to_selected_worker(self) -> None:
+        from c09_04_multi_agent_patterns import (
+            WorkerChoice,
+            build_supervisor_graph,
+        )
+
+        model = DeterministicFakeChatModel(
+            structured_responses={
+                WorkerChoice: WorkerChoice(worker="researcher"),
+            }
+        )
+
+        result = build_supervisor_graph(model).invoke({"topic": "LangGraph"})
+
+        self.assertEqual(result["worker"], "researcher")
+        self.assertEqual(result["result"], "研究结果：LangGraph")
+
+
 if __name__ == "__main__":
     unittest.main()
