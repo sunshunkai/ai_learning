@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import unittest
+import asyncio
 from pathlib import Path
 from typing import Literal
 
@@ -107,6 +108,61 @@ class GraphFoundationTests(unittest.TestCase):
 
         self.assertEqual(result["answer"], "HELLO")
         self.assertNotIn("draft", result)
+
+
+class AdvancedControlFlowTests(unittest.TestCase):
+    def test_parallel_branches_merge_with_reducer(self) -> None:
+        from c03_01_branch_parallel import build_branch_graph
+
+        result = build_branch_graph().invoke({"branches": []})
+
+        self.assertEqual(set(result["branches"]), {"left", "right"})
+
+    def test_conditional_graph_selects_expected_route(self) -> None:
+        from c03_02_conditional_routing import build_conditional_graph
+
+        graph = build_conditional_graph()
+
+        self.assertEqual(graph.invoke({"value": 8})["result"], "large")
+        self.assertEqual(graph.invoke({"value": 2})["result"], "small")
+
+    def test_loop_stops_at_limit(self) -> None:
+        from c03_03_loops_recursion import build_loop_graph
+
+        result = build_loop_graph().invoke({"count": 0, "limit": 3})
+
+        self.assertEqual(result["count"], 3)
+
+    def test_send_processes_all_items(self) -> None:
+        from c03_04_send_map_reduce import build_send_graph
+
+        result = build_send_graph().invoke({"items": ["a", "b", "c"]})
+
+        self.assertEqual(set(result["results"]), {"A", "B", "C"})
+
+    def test_command_updates_state_and_routes(self) -> None:
+        from c03_05_command import build_command_graph
+
+        result = build_command_graph().invoke({"value": 1})
+
+        self.assertEqual(result["value"], 3)
+        self.assertEqual(result["path"], ["first", "second"])
+
+    def test_reliability_graph_retries_and_uses_context(self) -> None:
+        from c03_06_runtime_retry_timeout_cache import (
+            DemoContext,
+            build_reliability_graph,
+        )
+
+        result = asyncio.run(
+            build_reliability_graph().ainvoke(
+                {"value": 3},
+                context=DemoContext(multiplier=2),
+            )
+        )
+
+        self.assertEqual(result["result"], 6)
+        self.assertEqual(result["attempts"], 2)
 
 
 if __name__ == "__main__":
