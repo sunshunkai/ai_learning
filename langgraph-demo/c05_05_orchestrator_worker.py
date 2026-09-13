@@ -30,7 +30,10 @@ class WorkerInput(TypedDict):
 
 
 def build_orchestrator_graph(planner_model, worker_model):
-    planner = planner_model.with_structured_output(Plan)
+    planner = planner_model.with_structured_output(
+        Plan,
+        method="function_calling",
+    )
 
     def plan_node(state: OrchestratorState) -> dict[str, list[str]]:
         plan = planner.invoke(
@@ -101,4 +104,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -41,7 +41,10 @@ def research_topic(topic: str) -> str:
 
 
 def build_capstone_graph(model, checkpointer=None):
-    selector = model.with_structured_output(RouteDecision)
+    selector = model.with_structured_output(
+        RouteDecision,
+        method="function_calling",
+    )
 
     def route_node(state: CapstoneState) -> dict[str, str]:
         decision = selector.invoke(
@@ -125,4 +128,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -26,7 +26,10 @@ class SupervisorState(TypedDict):
 
 
 def build_supervisor_graph(model):
-    selector = model.with_structured_output(WorkerChoice)
+    selector = model.with_structured_output(
+        WorkerChoice,
+        method="function_calling",
+    )
 
     def supervisor_node(state: SupervisorState) -> dict[str, str]:
         choice = selector.invoke(
@@ -174,4 +177,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

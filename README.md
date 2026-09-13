@@ -1,7 +1,7 @@
 # AI Learning 学习项目
 
 > 一个模块化的 Python AI 应用开发学习仓库。项目采用「单仓库、多模块」
-> 的组织方式，将 Python 基础、LLM SDK、AgentScope、LangChain 等主题
+> 的组织方式，将 Python 基础、LLM SDK、AgentScope、LangChain、LangGraph 等主题
 > 拆分到独立目录中，便于按主题学习和按需扩展。
 > 各模块保持独立演进，并在内容迭代时尽量兼容已有学习路径与代码示例。
 
@@ -60,6 +60,13 @@ ai-learning/
 │   ├── quickstart.py  # invoke / stream / messages
 │   ├── 01_chat_models.py ... 16_skill_loading.py
 │   └── requirements.txt
+├── langgraph-demo/    # 【module 5】LangGraph（状态化编排，1.x 写法）
+│   ├── README.md      # 安装、学习路线和运行命令
+│   ├── KNOWLEDGE_GUIDE.md # 53 个示例的逐文件中文说明
+│   ├── common.py      # DeepSeek 与离线 FakeModel 工厂
+│   ├── c01_01_env_check.py ... c10_05_capstone_research_assistant.py
+│   ├── verify_examples.py # 离线/在线批量验证
+│   └── requirements.txt
 └── tools/             # 公用小工具（跨 module 共享）
     ├── __init__.py
     ├── load_env.py    # 从 .env 加载环境变量
@@ -108,6 +115,8 @@ touch ai-learning/xxx/__init__.py
    记忆、工作区、MCP 和服务化能力。
 4. **`langchain-demo/`**：对比 LangChain 这类框架怎么做编排，包括 Skill
    目录懒加载。（LangChain 本身可以对接 Claude，很多概念是相通的。）
+5. **`langgraph-demo/`**：学习 State、Graph API、Functional API、持久化、
+   HITL、流式、子图、多 Agent，以及 RAG/SQL 综合项目。
 
 ## 环境准备（首次使用）
 
@@ -136,6 +145,7 @@ pip install -r basics/requirements.txt
 pip install -r claude-sdk/requirements.txt
 pip install -r agentscope-demo/requirements.txt
 pip install -r langchain-demo/requirements.txt
+pip install -r langgraph-demo/requirements.txt
 ```
 
 ### 3. 配置 API Key（学 claude-sdk / agentscope-demo / langchain 时需要）
@@ -143,7 +153,7 @@ pip install -r langchain-demo/requirements.txt
 Claude SDK 需要 Anthropic 的 API Key。国内直连有限制，通常需要代理或
 兼容 Anthropic 格式的中转服务。配置方式有两种，任选其一：
 
-AgentScope 与 LangChain demo 使用 DeepSeek 的 OpenAI 兼容接口，需要在
+AgentScope、LangChain 与 LangGraph demo 使用 DeepSeek 的 OpenAI 兼容接口，需要在
 `.env` 中配置 `DEEPSEEK_API_KEY`。
 
 **方式 A：手动 export（临时，仅当前终端有效）**
@@ -177,6 +187,9 @@ python claude-sdk/basic_chat.py
 python claude-sdk/skill_loading.py --mode session --conversation --inspect
 python agentscope-demo/c01_01_env_check.py
 python agentscope-demo/c03_01_basic_agent.py
+python langgraph-demo/c01_01_env_check.py --offline
+python langgraph-demo/c05_07_react_tool_agent.py --offline
+python langgraph-demo/verify_examples.py --offline
 ```
 
 ## 常见问题

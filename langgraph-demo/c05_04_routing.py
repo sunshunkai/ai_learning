@@ -23,7 +23,10 @@ class RoutingState(TypedDict):
 
 
 def build_routing_graph(model):
-    selector = model.with_structured_output(RouteSelection)
+    selector = model.with_structured_output(
+        RouteSelection,
+        method="function_calling",
+    )
 
     def classify_node(state: RoutingState) -> dict[str, str]:
         decision = selector.invoke(
@@ -80,4 +83,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

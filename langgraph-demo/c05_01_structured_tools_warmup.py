@@ -35,9 +35,10 @@ def main() -> None:
         ],
     )
 
-    structured = model.with_structured_output(RouteSelection).invoke(
-        "请计算 1.5 + 2.5"
-    )
+    structured = model.with_structured_output(
+        RouteSelection,
+        method="function_calling",
+    ).invoke("请计算 1.5 + 2.5")
     tool_request = model.bind_tools([add]).invoke("请调用 add 工具")
 
     banner("c05_01 结构化输出与工具调用")
@@ -52,4 +53,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

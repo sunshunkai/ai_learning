@@ -23,6 +23,11 @@ class Route(BaseModel):
 
 
 class CommonHelperTests(unittest.TestCase):
+    def test_verification_manifest_contains_53_examples(self) -> None:
+        from verify_examples import all_examples
+
+        self.assertEqual(len(all_examples()), 53)
+
     def test_common_parser_accepts_offline_model_and_verbose(self) -> None:
         parser = parser_for("demo")
         args = parser.parse_args(
