@@ -380,5 +380,89 @@ class PersistenceMemoryTests(unittest.TestCase):
         self.assertEqual(len(graph.get_state(config).values["messages"]), 1)
 
 
+class HumanInTheLoopReliabilityTests(unittest.TestCase):
+    def test_interrupt_resumes_with_human_value(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.types import Command
+
+        from c07_01_interrupt_resume import build_interrupt_graph
+
+        graph = build_interrupt_graph(InMemorySaver())
+        config = {"configurable": {"thread_id": "interrupt"}}
+        first = graph.invoke({"value": "start"}, config=config)
+        resumed = graph.invoke(Command(resume="Alice"), config=config)
+
+        self.assertIn("__interrupt__", first)
+        self.assertEqual(resumed["value"], "Alice")
+
+    def test_approve_and_reject_choose_different_branches(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.types import Command
+
+        from c07_02_approve_reject import build_approval_graph
+
+        approved_graph = build_approval_graph(InMemorySaver())
+        approved_config = {"configurable": {"thread_id": "approved"}}
+        approved_graph.invoke({"action": "部署"}, approved_config)
+        approved = approved_graph.invoke(
+            Command(resume=True),
+            approved_config,
+        )
+
+        rejected_graph = build_approval_graph(InMemorySaver())
+        rejected_config = {"configurable": {"thread_id": "rejected"}}
+        rejected_graph.invoke({"action": "部署"}, rejected_config)
+        rejected = rejected_graph.invoke(
+            Command(resume=False),
+            rejected_config,
+        )
+
+        self.assertEqual(approved["result"], "approved:部署")
+        self.assertEqual(rejected["result"], "rejected:部署")
+
+    def test_review_edit_uses_modified_payload(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.types import Command
+
+        from c07_03_review_edit_state import build_review_graph
+
+        graph = build_review_graph(InMemorySaver())
+        config = {"configurable": {"thread_id": "review"}}
+        graph.invoke({"draft": "旧内容"}, config=config)
+        result = graph.invoke(
+            Command(resume="修改后的内容"),
+            config=config,
+        )
+
+        self.assertEqual(result["draft"], "修改后的内容")
+
+    def test_retry_graph_recovers(self) -> None:
+        from c07_05_retries_timeouts_errors import build_retry_graph
+
+        result = build_retry_graph().invoke({"value": 2})
+
+        self.assertEqual(result["value"], 4)
+        self.assertEqual(result["attempts"], 2)
+
+    def test_error_handler_recovers(self) -> None:
+        from c07_05_retries_timeouts_errors import (
+            build_error_handler_graph,
+        )
+
+        result = build_error_handler_graph().invoke({"status": "running"})
+
+        self.assertEqual(result["status"], "recovered")
+
+    def test_graceful_drain_pauses_and_resumes(self) -> None:
+        from langgraph.checkpoint.memory import InMemorySaver
+
+        from c07_06_graceful_drain import run_drain_demo
+
+        paused, resumed = run_drain_demo(InMemorySaver())
+
+        self.assertEqual(paused, 1)
+        self.assertEqual(resumed["count"], 2)
+
+
 if __name__ == "__main__":
     unittest.main()
