@@ -165,5 +165,30 @@ class AdvancedControlFlowTests(unittest.TestCase):
         self.assertEqual(result["attempts"], 2)
 
 
+class FunctionalApiTests(unittest.TestCase):
+    def test_entrypoint_calls_task(self) -> None:
+        from c04_01_entrypoint_task import double_workflow
+
+        self.assertEqual(double_workflow.invoke(5), 10)
+
+    def test_parallel_futures_are_aggregated(self) -> None:
+        from c04_02_futures_parallel import parallel_square_workflow
+
+        self.assertEqual(parallel_square_workflow.invoke(4), 24)
+
+    def test_retry_workflow_recovers(self) -> None:
+        from c04_03_retry_resume import run_retry_workflow
+
+        result = run_retry_workflow(7)
+
+        self.assertEqual(result["value"], 14)
+        self.assertEqual(result["attempts"], 2)
+
+    def test_graph_and_functional_api_interoperate(self) -> None:
+        from c04_04_graph_functional_interop import interop_workflow
+
+        self.assertEqual(interop_workflow.invoke(" hi "), "HI-GRAPH")
+
+
 if __name__ == "__main__":
     unittest.main()
