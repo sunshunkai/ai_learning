@@ -18,6 +18,8 @@
 
 详细逐文件说明见 `KNOWLEDGE_GUIDE.md`。
 
+想按章节系统学习 RAG 的原理、实现和产品案例，见 `RAG_PRINCIPLES.md`。
+
 ## 运行
 
 先安装依赖：
