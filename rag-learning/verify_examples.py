@@ -16,6 +16,7 @@ SCRIPTS = [
     "12_retrieval_scores.py",
     "09_rag_naive.py --offline",
     "10_rag_citation.py --offline",
+    "14_vectorstore_update.py",
 ]
 
 
