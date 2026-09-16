@@ -1352,6 +1352,8 @@ Anthropic 提出的一种思路：在 embedding 之前，先让模型为每个 c
 | 来源引用 | `10_rag_citation.py` | Prompt 约束和引用 |
 | provider 切换 | `11_provider_switch.py` | 配置化隔离供应商 |
 | 检索分数 | `12_retrieval_scores.py` | 分数、排序、结果观察 |
+| DashScope Rerank | `13_rerank.py` | 召回候选、交叉重排、保留 Top N |
+| 向量更新 | `14_vectorstore_update.py` | 稳定 ID、upsert、删除旧版本 |
 
 ### 14.2 推荐阅读和运行顺序
 
@@ -1370,6 +1372,8 @@ python rag-learning/10_rag_citation.py --offline
 ```bash
 python rag-learning/09_rag_naive.py
 python rag-learning/10_rag_citation.py
+python rag-learning/13_rerank.py
+python rag-learning/14_vectorstore_update.py
 ```
 
 ### 14.3 练习

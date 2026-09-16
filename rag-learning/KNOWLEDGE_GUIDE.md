@@ -18,6 +18,8 @@
 | `10_rag_citation.py` | 带来源引用的 RAG | 在线需 DeepSeek |
 | `11_provider_switch.py` | 配置化切换 embedding / vectorstore | 部分可选 |
 | `12_retrieval_scores.py` | 检索分数、结果排序 | 否 |
+| `13_rerank.py` | DashScope Rerank 两阶段检索 | 是 |
+| `14_vectorstore_update.py` | 稳定 ID、upsert、删除旧版本 | 否 |
 | `demo.py` | 快速入口，通过参数切换 provider | 可选 |
 | `verify_examples.py` | 离线批量验证基础 demo | 否 |
 
@@ -176,6 +178,24 @@ python rag-learning/10_rag_citation.py
 ```bash
 python rag-learning/12_retrieval_scores.py
 ```
+
+查看真实重排：
+
+```bash
+python rag-learning/13_rerank.py
+```
+
+默认先召回 10 条候选，再用 `gte-rerank-v2` 重排，最后保留 3 条。
+
+查看向量更新：
+
+```bash
+python rag-learning/14_vectorstore_update.py
+python rag-learning/14_vectorstore_update.py --vectorstore chroma
+```
+
+更新时使用 `source:v版本:c块号` 作为稳定 ID。新版本使用新 ID 写入，
+写入成功后删除旧版本 ID，避免查询到过期内容。
 
 ## 6. Provider 切换
 

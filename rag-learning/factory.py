@@ -7,6 +7,7 @@ import hashlib
 import math
 import os
 import re
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -63,6 +64,57 @@ class RAGConfig:
     chunk_overlap: int = 20
     embedding_kwargs: dict[str, Any] = field(default_factory=dict)
     vectorstore_kwargs: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class RerankedDocument:
+    document: Document
+    score: float
+    original_rank: int
+
+
+def build_chunk_id(source: str, version: int, chunk_index: int) -> str:
+    """生成稳定、可覆盖更新的 chunk 标识。"""
+    if not source.strip():
+        raise ValueError("source 不能为空")
+    if version <= 0:
+        raise ValueError("version 必须大于 0")
+    if chunk_index < 0:
+        raise ValueError("chunk_index 不能小于 0")
+    return f"{source}:v{version}:c{chunk_index}"
+
+
+def rerank_documents(
+    query: str,
+    documents: list[Document],
+    scorer: Callable[[str, list[str]], list[tuple[int, float]]],
+    top_k: int,
+) -> list[RerankedDocument]:
+    """用外部 scorer 对候选文档重新排序。"""
+    if top_k <= 0:
+        raise ValueError("top_k 必须大于 0")
+    if not documents:
+        return []
+
+    scored = scorer(query, [doc.page_content for doc in documents])
+    seen_indexes: set[int] = set()
+    results: list[RerankedDocument] = []
+
+    for index, score in scored:
+        if index < 0 or index >= len(documents):
+            raise ValueError(f"rerank 返回了无效文档下标: {index}")
+        if index in seen_indexes:
+            raise ValueError(f"rerank 返回了重复文档下标: {index}")
+        seen_indexes.add(index)
+        results.append(
+            RerankedDocument(
+                document=documents[index],
+                score=float(score),
+                original_rank=index + 1,
+            )
+        )
+
+    return sorted(results, key=lambda item: (-item.score, item.original_rank))[:top_k]
 
 
 def build_embedding(provider: str, **kwargs: Any) -> Embeddings:

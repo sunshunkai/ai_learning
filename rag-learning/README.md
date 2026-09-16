@@ -14,7 +14,9 @@
 7. LLM 生成：DeepSeek 根据上下文回答
 8. 来源展示：通过 metadata 显示引用
 9. Provider 封装：通过工厂函数隔离具体供应商
-10. 进阶方向：rerank、问题重写、Agentic RAG、RAG 评测
+10. Rerank：召回候选后调用 DashScope 重排
+11. 向量更新：稳定 ID、upsert、删除旧版本
+12. 进阶方向：问题重写、Agentic RAG、RAG 评测
 
 详细逐文件说明见 `KNOWLEDGE_GUIDE.md`。
 
@@ -62,6 +64,18 @@ python rag-learning/02_chunking.py
 python rag-learning/03_embeddings_hash.py
 python rag-learning/06_vectorstore_memory.py
 python rag-learning/09_rag_naive.py --offline
+python rag-learning/13_rerank.py
+python rag-learning/14_vectorstore_update.py
+```
+
+`13_rerank.py` 默认使用 DashScope embedding 召回 10 条，再使用
+`gte-rerank-v2` 重排并保留 3 条。需要设置 `DASHSCOPE_API_KEY`。
+
+`14_vectorstore_update.py` 默认使用内存向量库演示稳定 ID、版本替换和删除。
+切换成持久化 Chroma：
+
+```bash
+python rag-learning/14_vectorstore_update.py --vectorstore chroma
 ```
 
 ## 如何切换 provider
