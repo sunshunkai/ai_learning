@@ -27,3 +27,6 @@ dist/
 # ---- AgentScope 本地服务运行时数据 ----
 agentscope-demo/agent_service.db
 agentscope-demo/service_workspaces/
+
+# ---- 本地 IDE / MCP 配置（含临时端口，勿提交）----
+.mcp.json
