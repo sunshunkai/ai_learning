@@ -4,6 +4,10 @@
 练习方向。代码以 LangGraph 1.x 官方 Python 文档为基线，并针对 DeepSeek
 和离线验证做了适配。
 
+如果需要按章节从原理开始学习，请优先阅读
+[`LANGGRAPH_LEARNING_GUIDE.md`](./LANGGRAPH_LEARNING_GUIDE.md)。本文适合在
+学完章节后按文件快速回忆和查找。
+
 官方文档：
 
 - [Overview](https://docs.langchain.com/oss/python/langgraph/overview)

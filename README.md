@@ -62,6 +62,7 @@ ai-learning/
 │   └── requirements.txt
 ├── langgraph-demo/    # 【module 5】LangGraph（状态化编排，1.x 写法）
 │   ├── README.md      # 安装、学习路线和运行命令
+│   ├── LANGGRAPH_LEARNING_GUIDE.md # 十章系统学习手册
 │   ├── KNOWLEDGE_GUIDE.md # 53 个示例的逐文件中文说明
 │   ├── common.py      # DeepSeek 与离线 FakeModel 工厂
 │   ├── c01_01_env_check.py ... c10_05_capstone_research_assistant.py
@@ -124,8 +125,10 @@ touch ai-learning/xxx/__init__.py
    记忆、工作区、MCP 和服务化能力。
 4. **`langchain-demo/`**：对比 LangChain 这类框架怎么做编排，包括 Skill
    目录懒加载。（LangChain 本身可以对接 Claude，很多概念是相通的。）
-5. **`langgraph-demo/`**：学习 State、Graph API、Functional API、持久化、
-   HITL、流式、子图、多 Agent，以及 RAG/SQL 综合项目。
+5. **`langgraph-demo/`**：按
+   [`LANGGRAPH_LEARNING_GUIDE.md`](langgraph-demo/LANGGRAPH_LEARNING_GUIDE.md)
+   学习 State、Graph API、Functional API、持久化、HITL、流式、子图、
+   多 Agent，以及 RAG/SQL 综合项目。
 6. **`rag-learning/`**：专项学习 RAG，重点练习如何封装 Embedding 和 VectorStore，
    让后续切换本地、阿里云或其他 provider 时尽量不改业务逻辑。
 

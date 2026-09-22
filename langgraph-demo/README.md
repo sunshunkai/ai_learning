@@ -7,7 +7,12 @@ Graph API、Functional API、工作流、Agent、持久化、HITL、流式、子
 模型默认通过 OpenAI 兼容接口接入 DeepSeek。所有依赖模型的示例都支持
 `--offline`，使用确定性本地 FakeModel，不访问网络。
 
-逐文件原理说明见 [`KNOWLEDGE_GUIDE.md`](./KNOWLEDGE_GUIDE.md)。
+建议先按章节系统学习完整手册：
+
+- [`LANGGRAPH_LEARNING_GUIDE.md`](./LANGGRAPH_LEARNING_GUIDE.md)：
+  十章完整教程，包含概念、官方依据、逐示例讲解、自测、练习和速查。
+- [`KNOWLEDGE_GUIDE.md`](./KNOWLEDGE_GUIDE.md)：
+  按文件快速回忆的逐示例知识索引。
 
 官方参考：
 
@@ -79,6 +84,9 @@ venv/bin/python langgraph-demo/c05_07_react_tool_agent.py --offline
 Reducer、Checkpointer、Interrupt 和 Streaming 结构保持不变。
 
 ## 学习路线
+
+完整知识体系、每章学习目标、官方文档映射和练习见
+[`LANGGRAPH_LEARNING_GUIDE.md`](./LANGGRAPH_LEARNING_GUIDE.md)。
 
 建议按 `c01 -> c10` 顺序学习：
 
